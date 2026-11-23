@@ -1,4 +1,5 @@
 """Small SQLite helpers for the local PW2 prototype."""
+from contextlib import contextmanager
 import hashlib
 import hmac
 import os
@@ -6,15 +7,22 @@ from pathlib import Path
 import secrets
 import sqlite3
 
+from config import LOCAL_PASSWORD, PRODUCTION
+
 HERE = Path(__file__).resolve().parent
 
 
+@contextmanager
 def connection():
     path = os.environ.get("PCBUILDER_DB", str(HERE / "database" / "app.db"))
     db = sqlite3.connect(path)
     db.row_factory = sqlite3.Row
     db.execute("PRAGMA foreign_keys = ON")
-    return db
+    try:
+        with db:
+            yield db
+    finally:
+        db.close()
 
 
 def make_password_hash(password):
@@ -35,14 +43,18 @@ def verify_password(password, stored):
 def init_database():
     with connection() as db:
         db.executescript((HERE / "database" / "schema.sql").read_text(encoding="utf-8"))
-        if db.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0:
+        if db.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0 and not PRODUCTION:
             db.executemany(
                 "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
                 [
-                    ("student", make_password_hash("demo12345"), "student"),
-                    ("admin", make_password_hash("demo12345"), "admin"),
+                    ("student", make_password_hash(LOCAL_PASSWORD), "student"),
+                    ("admin", make_password_hash(LOCAL_PASSWORD), "admin"),
                 ],
             )
+        if PRODUCTION:
+            for row in db.execute("SELECT username, password_hash FROM users"):
+                if row["username"] in {"student", "admin"} and verify_password(LOCAL_PASSWORD, row["password_hash"]):
+                    raise RuntimeError("Use a fresh database or remove local demo accounts before deployment.")
         if db.execute("SELECT COUNT(*) FROM categories").fetchone()[0] == 0:
             categories = ["CPU", "Motherboard", "RAM", "GPU", "Storage", "PSU", "Case"]
             db.executemany("INSERT INTO categories (name) VALUES (?)", [(x,) for x in categories])

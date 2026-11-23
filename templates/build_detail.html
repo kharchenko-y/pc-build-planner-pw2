@@ -35,7 +35,7 @@
 </form>
 <div class="actions">
   <a href="/builds/{{ build.id }}/edit">Edit name</a>
-  <form method="post" action="/builds/{{ build.id }}/delete" onsubmit="return confirm('Delete this build?');">
+  <form method="post" action="/builds/{{ build.id }}/delete" data-confirm="Delete this build?">
     <input type="hidden" name="csrf" value="{{ csrf }}">
     <button type="submit" class="danger">Delete build</button>
   </form>

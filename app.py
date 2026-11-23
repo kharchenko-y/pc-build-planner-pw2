@@ -1,33 +1,72 @@
 """A small database-backed PC Build Planner prototype for PW2."""
 import csv
+import hashlib
 import io
-import os
+import time
 import secrets
 import sqlite3
 
 from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from db import connection, init_database
+from config import PRODUCTION, ROOT, SESSION_SECONDS, SESSION_SECRET
+from db import connection, verify_password
 
-app = FastAPI(title="PC Build Planner")
-# This key is for local demonstration only. Set SESSION_SECRET before real deployment.
-app.add_middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET", "local-dev-secret-change-me"), same_site="lax", https_only=False)
-from fastapi.staticfiles import StaticFiles
-from pathlib import Path
-ROOT = Path(__file__).resolve().parent
+app = FastAPI(title="PC Build Planner", docs_url=None, redoc_url=None, openapi_url=None)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=SESSION_SECRET,
+    session_cookie="pcbuild_session",
+    max_age=SESSION_SECONDS,
+    same_site="lax",
+    https_only=PRODUCTION,
+)
 app.mount("/static", StaticFiles(directory=str(ROOT / "static")), name="static")
 templates = Jinja2Templates(directory=str(ROOT / "templates"))
 
 
+@app.middleware("http")
+async def response_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "same-origin"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; object-src 'none'; base-uri 'none'; "
+        "frame-ancestors 'none'; form-action 'self'"
+    )
+    if request.url.path.startswith("/static/"):
+        return response
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+def session_digest(token):
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
 def user_from_request(request):
-    user_id = request.session.get("user_id")
-    if not user_id:
-        return None
-    with connection() as db:
-        return db.execute("SELECT id, username, role FROM users WHERE id = ?", (user_id,)).fetchone()
+    if not hasattr(request.state, "current_user"):
+        request.state.current_user = None
+        token = request.session.get("login_token")
+        if token:
+            with connection() as db:
+                request.state.current_user = db.execute(
+                    """SELECT u.id, u.username, u.role FROM users u
+                       JOIN login_sessions s ON s.user_id = u.id
+                       WHERE s.token_digest = ? AND s.expires_at > ?""",
+                    (session_digest(token), int(time.time())),
+                ).fetchone()
+    return request.state.current_user
+
+
+def revoke_login(db, request):
+    token = request.session.get("login_token")
+    if token:
+        db.execute("DELETE FROM login_sessions WHERE token_digest = ?", (session_digest(token),))
 
 
 def token_for(request):
@@ -38,7 +77,7 @@ def token_for(request):
 
 def check_token(request, token):
     actual = request.session.get("csrf_token", "")
-    if not actual or not secrets.compare_digest(actual, token):
+    if not actual or not token.isascii() or not secrets.compare_digest(actual, token):
         raise HTTPException(status_code=403, detail="Invalid form token. Reload the page and try again.")
 
 
@@ -89,13 +128,23 @@ def login_form(request: Request):
 @app.post("/login")
 def login(request: Request, username: str = Form(...), password: str = Form(...), csrf: str = Form(...)):
     check_token(request, csrf)
-    from db import verify_password
-    with connection() as db:
-        user = db.execute("SELECT * FROM users WHERE username = ?", (username.strip(),)).fetchone()
-    if not user or not verify_password(password, user["password_hash"]):
+    username = username.strip()
+    if not 1 <= len(username) <= 32 or not 1 <= len(password) <= 128:
         return page(request, "login.html", error="Incorrect username or password.")
-    request.session.clear()  # don't keep old session data at login
-    request.session["user_id"] = user["id"]
+    with connection() as db:
+        user = db.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+        if not user or not verify_password(password, user["password_hash"]):
+            return page(request, "login.html", error="Incorrect username or password.")
+        token = secrets.token_urlsafe(32)
+        now = int(time.time())
+        revoke_login(db, request)
+        db.execute("DELETE FROM login_sessions WHERE expires_at <= ?", (now,))
+        db.execute(
+            "INSERT INTO login_sessions (token_digest, user_id, expires_at) VALUES (?, ?, ?)",
+            (session_digest(token), user["id"], now + SESSION_SECONDS),
+        )
+    request.session.clear()
+    request.session["login_token"] = token
     token_for(request)
     return redirect("/")
 
@@ -103,6 +152,8 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
 @app.post("/logout")
 def logout(request: Request, csrf: str = Form(...)):
     check_token(request, csrf)
+    with connection() as db:
+        revoke_login(db, request)
     request.session.clear()
     return redirect("/")
 
