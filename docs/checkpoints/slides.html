@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PC Build Planner · Checkpoints 1–3</title><link rel="stylesheet" href="presentation.css"></head>
+<body>
+<header class="top"><div class="bar"><strong>PC Build Planner · Vilnius University</strong>
+<nav class="nav" aria-label="Slides"><button type="button" id="prev" aria-label="Previous slide">←</button><span id="count" aria-live="polite">11 slides</span><button type="button" id="next" aria-label="Next slide">→</button><a href="#slide-2">CP1</a><a href="#slide-5">CP2</a><a href="#slide-9">CP3</a></nav></div></header>
+<main class="deck">
+<section class="slide" id="slide-1">
+<p class="kicker">Practical Work II · 24 November 2026</p><h1>PC Build<br>Planner</h1>
+<p class="lead">Research and requirements, planning and design, and the first working database-backed flow.</p>
+<p>Catch-up evidence for Checkpoints 1 and 2, followed by the Checkpoint 3 demo.</p>
+<p><a href="https://yarslv.pythonanywhere.com/">Classroom site</a> · <a href="https://github.com/kharchenko-y/pc-build-planner-pw2">Private GitHub repository</a></p>
+</section>
+<section class="slide" id="slide-2">
+<p class="kicker">Checkpoint 1 · Problem and users</p><h2>Keep the parts, budget and basic checks together</h2>
+<div class="grid"><article class="card"><h3>Student / beginner</h3><p>Save private builds, choose named components and compare their current cost with a budget.</p></article>
+<article class="card"><h3>Catalogue administrator</h3><p>Maintain a shared example catalogue. Build ownership applies to both roles.</p></article></div>
+<p>The visitor can see how the app works and reach the login page.</p>
+</section>
+<section class="slide" id="slide-3">
+<p class="kicker">Checkpoint 1 · Research</p><h2>Comparable tools and project scope</h2>
+<div class="grid"><article class="card"><h3>PCPartPicker</h3><p>Part selection, compatibility and pricing guidance.</p><a href="https://discord.com/servers/pcpartpicker-197079805710041088">Official PCPartPicker description</a></article>
+<article class="card"><h3>Pangoly</h3><p>Category-led builder, starter configurations, compatibility and seller information.</p><a href="https://pangoly.com/en/pc-builder">Pangoly PC Builder</a></article>
+<article class="card"><h3>Our scope</h3><p>Illustrative prices, private builds and two comparisons against the motherboard. The synthetic catalogue keeps the demonstration reproducible.</p></article></div>
+</section>
+<section class="slide" id="slide-4">
+<p class="kicker">Checkpoint 1 · Requirements and responsibilities</p><h2>Prove one complete workflow first</h2>
+<div class="grid"><article class="card"><h3>First priority</h3><p>Schema, login, owner checks, build CRUD and part picker.</p></article>
+<article class="card"><h3>Next priorities</h3><p>Admin catalogue, combined search, budget, compatibility, report, browser checks and release.</p></article>
+<article class="card"><h3>Proposed reviewers</h3><p>Yaroslav leads database and build-flow review. The partner leads catalogue and UI review. Both explain the whole application.</p></article></div>
+<p>Material AI assistance is declared. The contribution log records confirmed actions and planned work.</p>
+</section>
+<section class="slide" id="slide-5">
+<p class="kicker">Checkpoint 2 · Navigation</p><h2>Public, signed-in and admin areas</h2>
+<figure><img src="visuals/site-map.svg" alt="Site map from overview and login to signed-in builds, report and catalogue with restricted admin controls"></figure>
+</section>
+<section class="slide" id="slide-6">
+<p class="kicker">Checkpoint 2 · Interface</p><h2>Wireframes for the core screens</h2>
+<figure><img src="visuals/wireframes.svg" alt="Six wireframes for overview and login, builds, build detail on desktop and mobile, catalogue and report"></figure>
+</section>
+<section class="slide" id="slide-7">
+<p class="kicker">Checkpoint 2 · Data model</p><h2>Four domain tables and two authentication tables</h2>
+<figure><img src="visuals/er-diagram.svg" alt="The builds, build items, components and categories relationships plus users and login sessions"></figure>
+</section>
+<section class="slide" id="slide-8">
+<p class="kicker">Checkpoint 2 · Architecture</p><h2>Follow a save from browser to database</h2>
+<figure><img src="visuals/request-flow.svg" alt="Browser POST goes through FastAPI to an SQLite transaction, followed by a redirect to the HTML result"></figure>
+<p>FastAPI + Jinja · SQLite · HTML, CSS and Fetch · PythonAnywhere + a2wsgi. <a href="gallery.html">Review-branch screenshots</a>.</p>
+</section>
+<section class="slide" id="slide-9">
+<p class="kicker">Checkpoint 3 · Live demonstration</p><h2>Save an €800 build with three parts</h2>
+<div class="grid"><article class="card"><h3>AM5 CPU</h3><p class="metric">€190</p></article><article class="card"><h3>AM5 motherboard</h3><p class="metric">€130</p></article><article class="card"><h3>DDR5 memory kit</h3><p class="metric">€55</p></article></div>
+<p class="lead">€375.00 total. Refresh, rename and open the delete confirmation.</p><p><a href="https://yarslv.pythonanywhere.com/">Open the live baseline</a> · <a href="https://yarslv.pythonanywhere.com/builds/3">Prepared build</a> (sign-in required)</p>
+</section>
+<section class="slide" id="slide-10">
+<p class="kicker">Checkpoint 3 · Safety and test evidence</p><h2>Enforced on the server</h2>
+<div class="grid"><article class="card"><h3>Roles and ownership</h3><p>Student gets a role refusal on the admin route. The build query binds the current owner's ID.</p></article>
+<article class="card"><h3>Data integrity</h3><p>Confirmed build deletion cascades to items. An in-use catalogue part is restricted. Demonstrated on disposable SQLite.</p></article>
+<article class="card"><h3>Verification</h3><p>Baseline: 24 tests, 12 subtests. Redesign: 25 tests, 12 subtests. Real FastAPI in Windows. One test-client deprecation warning per run.</p></article></div>
+<p><a href="sqlite-results.txt">SQLite output</a> · <a href="redesign-tests.txt">FastAPI output</a> · <a href="live-results.txt">Classroom recheck</a></p>
+</section>
+<section class="slide" id="slide-11">
+<p class="kicker">Checkpoint 3 · Current versions</p><h2>Baseline live, redesign in review</h2>
+<div class="grid"><article class="card"><h3>PythonAnywhere · baseline</h3><p>Student create, parts, refresh, edit, confirmation, catalogue filter and report were checked on HTTPS.</p></article><article class="card"><h3>Redesign candidate</h3><p>New layout and local Fira Sans. Passed the fresh Windows FastAPI tests. The live site still serves the baseline.</p></article></div>
+<p>Ask the lecturer about make-up assessment, topic and technology approval, and provisioned demo accounts. The formal final submission and both individual contributions are still due.</p>
+</section>
+</main>
+<script>
+  const slides = [...document.querySelectorAll(".slide")];
+  const previous = document.querySelector("#prev");
+  const next = document.querySelector("#next");
+  const count = document.querySelector("#count");
+  document.documentElement.classList.add("js");
+  let current = 0;
+
+  function show(index) {
+    current = Math.max(0, Math.min(slides.length - 1, index));
+    slides.forEach((slide, i) => { slide.hidden = i !== current; });
+    previous.disabled = current === 0;
+    next.disabled = current === slides.length - 1;
+    count.textContent = (current + 1) + " / " + slides.length;
+    window.scrollTo(0, 0);
+  }
+
+  function syncHash() {
+    const index = slides.findIndex(slide => "#" + slide.id === location.hash);
+    show(Math.max(index, 0));
+  }
+
+  function move(step) {
+    const target = slides[current + step];
+    if (target) location.hash = target.id;
+  }
+
+  previous.addEventListener("click", () => move(-1));
+  next.addEventListener("click", () => move(1));
+  window.addEventListener("hashchange", syncHash);
+  window.addEventListener("keydown", event => {
+    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+      event.preventDefault();
+      move(event.key === "ArrowRight" ? 1 : -1);
+    }
+  });
+  syncHash();
+</script>
+</body></html>

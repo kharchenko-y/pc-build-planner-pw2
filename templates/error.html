@@ -1,7 +1,19 @@
 {% extends 'base.html' %}
 {% block title %}Request error | PC Build Planner{% endblock %}
 {% block content %}
-<h1>Could not complete the request</h1>
-<p role="alert">{{ error }}</p>
-<p><a href="/">Return to the home page</a></p>
+<div class="narrow">
+  <div class="sheet sheet-pad error-box">
+    <h1>Could not complete the request</h1>
+    <p class="lede" role="alert">{{ error }}</p>
+    <div class="form-actions">
+      {% if user %}
+      <a class="btn" href="/">Back to My builds</a>
+      <a class="btn btn-ghost" href="/components">Open the catalogue</a>
+      {% else %}
+      <a class="btn" href="/login">Log in</a>
+      <a class="btn btn-ghost" href="/">Home page</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
 {% endblock %}

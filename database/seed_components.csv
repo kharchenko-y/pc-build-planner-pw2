@@ -1,0 +1,28 @@
+category,name,price_eur,socket,ram_type,specs
+CPU,AMD Ryzen 5 7600,190.00,AM5,,6 cores / 12 threads; 3.8–5.1 GHz; 65 W TDP; Radeon integrated graphics
+CPU,Intel Core i5-14400F,175.00,LGA1700,,10 cores (6P + 4E) / 16 threads; up to 4.7 GHz; 65 W base power; no integrated graphics
+Motherboard,MSI PRO B650M-A WIFI,130.00,AM5,DDR5,AMD B650; Micro-ATX; 4 × DDR5 slots; Wi-Fi 6E
+Motherboard,MSI PRO B760M-A WIFI DDR4,125.00,LGA1700,DDR4,Intel B760; Micro-ATX; 4 × DDR4 slots; Wi-Fi 6E
+RAM,Kingston FURY Beast 16 GB (2 × 8 GB) DDR5-5600,55.00,,DDR5,2 × 8 GB; 5600 MT/s; CL40
+RAM,Corsair Vengeance LPX 16 GB (2 × 8 GB) DDR4-3200,40.00,,DDR4,2 × 8 GB; 3200 MT/s; CL16
+GPU,MSI GeForce RTX 5060 8G VENTUS 2X OC,290.00,,,"8 GB GDDR7, 128-bit; 3840 CUDA cores; 145 W; 550 W PSU recommended"
+Storage,Samsung 990 EVO Plus 1 TB,75.00,,,"M.2 2280 NVMe; PCIe 4.0 x4 / 5.0 x2; up to 7,150 MB/s read"
+PSU,be quiet! System Power 10 650W,70.00,,,650 W; 80 PLUS Bronze; non-modular; ATX
+Case,Cooler Master MasterBox Q300L,60.00,,,Micro-ATX / Mini-ITX; GPU up to 360 mm; CPU cooler up to 159 mm
+CPU,AMD Ryzen 7 9700X,300.00,AM5,,8 cores / 16 threads; 3.8–5.5 GHz; 65 W TDP; Radeon integrated graphics
+CPU,AMD Ryzen 7 7800X3D,360.00,AM5,,8 cores / 16 threads; 4.2–5.0 GHz; 96 MB L3 cache; 120 W TDP
+CPU,Intel Core i5-12400F,110.00,LGA1700,,6 cores / 12 threads; 2.5–4.4 GHz; 65 W base power; no integrated graphics
+CPU,AMD Ryzen 5 5600,95.00,AM4,,6 cores / 12 threads; 3.5–4.4 GHz; 65 W TDP; no integrated graphics
+Motherboard,ASUS TUF GAMING B650-PLUS WIFI,185.00,AM5,DDR5,AMD B650; ATX; 4 × DDR5 slots; Wi-Fi 6
+Motherboard,MSI PRO B760M-A WIFI,140.00,LGA1700,DDR5,Intel B760; Micro-ATX; 4 × DDR5 slots; Wi-Fi 6E
+Motherboard,MSI B550M PRO-VDH WIFI,100.00,AM4,DDR4,AMD B550; Micro-ATX; 4 × DDR4 slots; Wi-Fi 6
+RAM,Corsair Vengeance 32 GB (2 × 16 GB) DDR5-6000,110.00,,DDR5,2 × 16 GB; 6000 MT/s; CL30
+RAM,Kingston FURY Beast 32 GB (2 × 16 GB) DDR4-3200,75.00,,DDR4,2 × 16 GB; 3200 MT/s; CL16
+GPU,Sapphire PULSE Radeon RX 9060 XT 16GB,380.00,,,"16 GB GDDR6, 128-bit; 32 compute units; 170 W board power"
+GPU,ASUS PRIME GeForce RTX 5070 12GB OC,580.00,,,"12 GB GDDR7, 192-bit; 6144 CUDA cores; 250 W; 650 W PSU required"
+Storage,Crucial P3 Plus 2 TB,120.00,,,"M.2 2280 NVMe; PCIe 4.0 x4; up to 5,000 MB/s read"
+Storage,Seagate BarraCuda 2 TB,65.00,,,3.5-inch HDD; SATA 6 Gb/s; 7200 rpm; 256 MB cache
+PSU,Corsair RM750e,105.00,,,750 W; 80 PLUS Gold; fully modular; ATX 3.1
+PSU,Seasonic FOCUS GX-850,140.00,,,850 W; 80 PLUS Gold; fully modular; ATX 3.1
+Case,Fractal Design North,140.00,,,ATX mid-tower; ATX / Micro-ATX / Mini-ITX; GPU up to 355 mm
+Case,NZXT H5 Flow (2024),95.00,,,ATX mid-tower; E-ATX / ATX / Micro-ATX / Mini-ITX; GPU up to 410 mm

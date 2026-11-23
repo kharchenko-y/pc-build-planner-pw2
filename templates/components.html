@@ -1,28 +1,75 @@
 {% extends 'base.html' %}
-{% block title %}Components | PC Build Planner{% endblock %}
+{% from '_macros.html' import money, part_icon %}
+{% block title %}{% if context and selected %}{{ CHOOSE_LABELS[selected] }}{% else %}Catalogue{% endif %} | PC Build Planner{% endblock %}
 {% block content %}
-<h1>Component catalogue</h1>
-<p>Browse example parts and illustrative prices.</p>
-<form id="catalogue-filter" class="filters" method="get" action="/components">
-  <label for="q">Search name</label>
-  <input id="q" name="q" value="{{ q }}" placeholder="CPU, SSD…" maxlength="80">
-  <label for="category">Category</label>
-  <select id="category" name="category">
-    <option value="">All categories</option>
-    {% for cat in categories %}
-    <option value="{{ cat.name }}" {% if selected == cat.name %}selected{% endif %}>{{ cat.name }}</option>
-    {% endfor %}
-  </select>
-  <button type="submit">Search</button>
-</form>
-{% if user.role == 'admin' %}
-<div class="actions">
-  <a class="button" href="/components/new">Add component</a>
-  <a href="/components/import">Import CSV</a>
-</div>
+{%- set build_q = '&build=' ~ context.build.id if context else '' -%}
+{%- set over = context and context.budget and context.total > context.budget -%}
+{% if context %}
+<nav class="crumbs" aria-label="Breadcrumb">
+  <ol><li><a href="/">My builds</a></li><li><a href="/builds/{{ context.build.id }}">{{ context.build.title }}</a></li><li aria-current="page">{{ CATEGORY_LABELS[selected] if selected else 'All parts' }}</li></ol>
+</nav>
 {% endif %}
-<p id="catalogue-status" role="status"></p>
-<section id="catalogue-results" aria-label="Catalogue search results">
-  {% include 'component_results.html' %}
-</section>
+<div class="page-head">
+  <div>
+    <h1>{% if context and selected %}{{ CHOOSE_LABELS[selected] }}{% else %}Component catalogue{% endif %}</h1>
+    <p class="lede">{% if context %}Parts are added to {{ context.build.title }}. Each part shows whether it fits what you already chose.{% else %}Real models with key specifications. Search by model name, socket or memory type.{% endif %}</p>
+  </div>
+</div>
+{% if user.role == 'admin' %}
+<div class="admin-bar"><strong>Catalogue administration</strong><a href="/components/new">Add component</a><a href="/components/import">Import CSV</a><span class="muted">Edit and delete links are shown on each part.</span></div>
+{% endif %}
+<div class="catalogue">
+  <nav class="cat-nav" aria-label="Categories">
+    <ul>
+      <li><a href="/components?q={{ q|urlencode }}{{ build_q }}"{% if not selected %} aria-current="page"{% endif %}><span class="cat-all" aria-hidden="true"></span><span>All parts</span><span class="count">{{ matches }}</span></a></li>
+      {% for cat in categories %}
+      <li><a href="/components?category={{ cat.name|urlencode }}&q={{ q|urlencode }}{{ build_q }}"{% if selected == cat.name %} aria-current="page"{% endif %}>{{ part_icon(cat.name) }}<span>{{ CATEGORY_LABELS[cat.name] }}</span><span class="count">{{ counts[cat.name] }}</span></a></li>
+      {% endfor %}
+    </ul>
+  </nav>
+  <div>
+    <form id="catalogue-filter" class="search" method="get" action="/components" role="search" aria-label="Catalogue">
+      <div class="search-box">
+        <label class="visually-hidden" for="q">Search parts</label>
+        <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="m13 13 4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="q" name="q" type="search" value="{{ q }}" maxlength="80" placeholder="Model, socket or memory type, for example AM5">
+      </div>
+      <input type="hidden" name="category" value="{{ selected }}">
+      {% if context %}<input type="hidden" name="build" value="{{ context.build.id }}">{% endif %}
+      <button type="submit">Search</button>
+    </form>
+
+    {% if context %}
+    <div class="sheet context">
+      <p><strong>{{ context.build.title }}</strong>
+        <span class="figures-inline">
+          <span>Total <strong class="money">{{ money(context.total) }}</strong></span>
+          {% if context.budget %}<span class="{{ 'state-bad' if over }}">{{ (money(context.total - context.budget) ~ ' over budget') if over else (money(context.budget - context.total) ~ ' left of ' ~ money(context.budget)) }}</span>{% endif %}
+          <span>{{ context.chosen|length }} of 7 parts</span>
+        </span>
+      </p>
+      <a class="btn btn-ghost btn-sm" href="/builds/{{ context.build.id }}{{ '#slot-' ~ selected|lower if selected }}">Back to build</a>
+    </div>
+    {% elif builds %}
+    <form class="sheet context" method="get" action="/components">
+      <p><strong>Add parts to a build</strong><br><span class="muted">Choose a build to show Add buttons and fit hints.</span></p>
+      <input type="hidden" name="q" value="{{ q }}">
+      <input type="hidden" name="category" value="{{ selected }}">
+      <span>
+        <label class="visually-hidden" for="context-build">Build</label>
+        <select id="context-build" name="build">{% for b in builds %}<option value="{{ b.id }}">{{ b.title }}</option>{% endfor %}</select>
+        <button class="btn-sm" type="submit">Use build</button>
+      </span>
+    </form>
+    {% else %}
+    <div class="sheet context"><p><a href="/">Create a build</a> to add parts from the catalogue.</p></div>
+    {% endif %}
+
+    <p id="catalogue-status" class="hint" role="status"></p>
+    <section id="catalogue-results" aria-label="Catalogue results">
+      {% include 'component_results.html' %}
+    </section>
+    <p class="demo-note">Specifications come from manufacturer pages. Prices are demonstration values in euros, not shop offers.</p>
+  </div>
+</div>
 {% endblock %}

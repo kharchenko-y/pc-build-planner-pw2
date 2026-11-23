@@ -1,20 +1,46 @@
-<div class="table-wrap">
-<table>
-  <caption>Search results ({{ components|length }})</caption>
-  <thead><tr>
-    <th scope="col">Category</th><th scope="col">Name</th><th scope="col">Price</th>
-    {% if user.role == 'admin' %}<th scope="col">Manage</th>{% endif %}
-  </tr></thead>
-  <tbody>
-    {% for component in components %}
-    <tr>
-      <td>{{ component.category }}</td><td>{{ component.name }}</td><td>€{{ '%.2f'|format(component.price_cents / 100) }}</td>
-      {% if user.role == 'admin' %}
-      <td><a href="/components/{{ component.id }}/edit" aria-label="Edit {{ component.name }}">Edit</a>
-        <a href="/components/{{ component.id }}/delete" aria-label="Delete {{ component.name }}">Delete</a></td>
-      {% endif %}
-    </tr>
-    {% else %}<tr><td colspan="{{ 4 if user.role == 'admin' else 3 }}">No components found.</td></tr>{% endfor %}
-  </tbody>
-</table>
+{% from '_macros.html' import money, part_icon, spec_list, chips %}
+{%- set admin = user.role == 'admin' -%}
+<div class="results-head">
+  <h2>{{ components|length }} {{ 'part' if components|length == 1 else 'parts' }}{% if selected %} in {{ CATEGORY_LABELS[selected]|lower }}{% endif %}{% if q %} matching “{{ q }}”{% endif %}</h2>
+  {% if context and selected %}<p>Parts that fit your build are listed first.</p>{% endif %}
+</div>
+<div class="sheet">
+{% if components %}
+  <ul class="parts-list">
+  {% for part in components %}
+    {% if not selected and (loop.first or part.category != loop.previtem.category) %}
+    <li class="part-group"><h3>{{ CATEGORY_LABELS[part.category] }}</h3><a href="/components?category={{ part.category|urlencode }}&q={{ q|urlencode }}{{ '&build=' ~ context.build.id if context }}">Show only {{ CATEGORY_LABELS[part.category]|lower }}</a></li>
+    {% endif %}
+    <li class="part-row">
+      {{ part_icon(part.category) }}
+      <div>
+        <p class="part-name">{{ part.name }}</p>
+        {{ spec_list(part.specs) }}
+        {% if part.socket or part.ram_type or part.fit %}
+        <div class="part-meta">{{ chips(part) }}{% if part.fit %}<span class="fit state state-{{ part.fit[0] }}">{{ part.fit[1] }}</span>{% endif %}</div>
+        {% endif %}
+      </div>
+      <div class="part-buy">
+        <span class="slot-price money">{{ money(part.price_cents) }}</span>
+        {% if part.action == 'in_build' %}
+          <span class="in-build">In this build</span>
+        {% elif part.action %}
+          <form method="post" action="/builds/{{ context.build.id }}/items">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <input type="hidden" name="component_id" value="{{ part.id }}">
+            {% if part.action == 'replace' %}<input type="hidden" name="replace" value="yes">{% endif %}
+            <button class="btn-sm{{ ' btn-ghost' if part.fit and part.fit[0] == 'bad' }}" type="submit">{{ 'Replace' if part.action == 'replace' else 'Add' }}<span class="visually-hidden"> {{ part.name }}</span></button>
+          </form>
+          <span class="after{{ ' is-over' if context.budget and part.after > context.budget }}">Total becomes {{ money(part.after) }}</span>
+        {% endif %}
+        {% if admin %}
+        <span class="admin-links"><a class="btn btn-sm btn-quiet" href="/components/{{ part.id }}/edit" aria-label="Edit {{ part.name }}">Edit</a><a class="btn btn-sm btn-danger-quiet" href="/components/{{ part.id }}/delete" aria-label="Delete {{ part.name }}">Delete</a></span>
+        {% endif %}
+      </div>
+    </li>
+  {% endfor %}
+  </ul>
+{% else %}
+  <div class="no-results"><strong>No components found.</strong>Try a model name, a socket such as AM5 or a memory type such as DDR5. <a href="/components{{ '?build=' ~ context.build.id if context else '' }}">Show all parts</a></div>
+{% endif %}
 </div>

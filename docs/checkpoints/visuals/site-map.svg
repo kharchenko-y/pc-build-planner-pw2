@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 565" role="img" aria-label="Site map">
+<defs><marker id="arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 1 L11 6 L0 11" fill="none" stroke="#087a73" stroke-width="1.8"/></marker></defs>
+<rect width="1200" height="565" rx="26" fill="#f0f5f4"/>
+<text x="42" y="49" font-family="system-ui,sans-serif" font-size="32" font-weight="750" fill="#172f34" text-anchor="start">Site map</text>
+<text x="42" y="79" font-family="system-ui,sans-serif" font-size="17" font-weight="450" fill="#3d5656" text-anchor="start">Public overview, signed-in workflows and admin catalogue controls</text>
+<rect x="47" y="129" width="245" height="94" rx="12" fill="#17464a" stroke="#17464a"/>
+<text x="64" y="157" font-family="system-ui,sans-serif" font-size="19" font-weight="710" fill="#fff" text-anchor="start">Public</text>
+<text x="64" y="182" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#d5eeeb" text-anchor="start">Overview  /</text>
+<text x="64" y="204" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#d5eeeb" text-anchor="start">Log in  /login</text>
+<rect x="373" y="129" width="355" height="94" rx="12" fill="#17464a" stroke="#17464a"/>
+<text x="390" y="157" font-family="system-ui,sans-serif" font-size="19" font-weight="710" fill="#fff" text-anchor="start">My builds</text>
+<text x="390" y="182" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#d5eeeb" text-anchor="start">Signed-in home  /</text>
+<text x="390" y="204" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#d5eeeb" text-anchor="start">Cards or List preference</text>
+<rect x="856" y="129" width="297" height="94" rx="12" fill="#17464a" stroke="#17464a"/>
+<text x="873" y="157" font-family="system-ui,sans-serif" font-size="19" font-weight="710" fill="#fff" text-anchor="start">Catalogue</text>
+<text x="873" y="182" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#d5eeeb" text-anchor="start">Components  /components</text>
+<text x="873" y="204" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#d5eeeb" text-anchor="start">Name + category search</text>
+<rect x="47" y="331" width="245" height="101" rx="12" fill="#fff" stroke="#b6cfcb"/>
+<text x="64" y="359" font-family="system-ui,sans-serif" font-size="19" font-weight="710" fill="#172f34" text-anchor="start">Report</text>
+<text x="64" y="384" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#3d5656" text-anchor="start">/report · print summary</text>
+<text x="64" y="406" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#3d5656" text-anchor="start">/report.csv · export</text>
+<rect x="332" y="331" width="258" height="123" rx="12" fill="#fff" stroke="#b6cfcb"/>
+<text x="349" y="359" font-family="system-ui,sans-serif" font-size="19" font-weight="710" fill="#172f34" text-anchor="start">Create and open</text>
+<text x="349" y="384" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#3d5656" text-anchor="start">/builds/new</text>
+<text x="349" y="406" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#3d5656" text-anchor="start">/builds/{id} · owner only</text>
+<text x="349" y="428" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#3d5656" text-anchor="start">Add, update or remove parts</text>
+<rect x="617" y="331" width="217" height="123" rx="12" fill="#fff" stroke="#b6cfcb"/>
+<text x="634" y="359" font-family="system-ui,sans-serif" font-size="19" font-weight="710" fill="#172f34" text-anchor="start">Edit and delete</text>
+<text x="634" y="384" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#3d5656" text-anchor="start">Rename or re-budget</text>
+<text x="634" y="406" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#3d5656" text-anchor="start">Confirm deletion</text>
+<text x="634" y="428" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#3d5656" text-anchor="start">Build owner only</text>
+<rect x="856" y="331" width="297" height="123" rx="12" fill="#fff" stroke="#b6cfcb"/>
+<text x="873" y="359" font-family="system-ui,sans-serif" font-size="19" font-weight="710" fill="#172f34" text-anchor="start">Admin catalogue</text>
+<text x="873" y="384" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#3d5656" text-anchor="start">Add and edit part</text>
+<text x="873" y="406" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#3d5656" text-anchor="start">Confirm unused-part delete</text>
+<text x="873" y="428" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#3d5656" text-anchor="start">Import CSV</text>
+<path d="M292 175 H373" fill="none" stroke="#087a73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<path d="M728 175 H856" fill="none" stroke="#087a73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<path d="M519 223 V282 H169 V331" fill="none" stroke="#087a73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<path d="M519 282 H462 V331" fill="none" stroke="#087a73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<path d="M590 386 H617" fill="none" stroke="#087a73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<path d="M1005 223 V331" fill="none" stroke="#087a73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="47" y="514" font-family="system-ui,sans-serif" font-size="17" font-weight="450" fill="#172f34" text-anchor="start">Login switches the home view. Catalogue and report remain accessible in the signed-in navigation.</text>
+</svg>

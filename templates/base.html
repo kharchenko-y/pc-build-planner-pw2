@@ -1,42 +1,50 @@
+{% from '_macros.html' import brand_mark %}
+{%- set path = request.url.path -%}
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="PC Build Planner - practical database-backed web project.">
+  <meta name="description" content="PC Build Planner: choose parts for a desktop PC, check CPU socket and memory compatibility, and keep the total within your budget.">
   <title>{% block title %}PC Build Planner{% endblock %}</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/styles.css">
   <script src="/static/actions.js" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-<header>
+<header class="site-header">
   <div class="container topbar">
-    <a class="logo" href="/">PC Build Planner</a>
-    <nav aria-label="Main navigation">
-      {% if user %}
-      <a href="/" {% if request.url.path == '/' %}aria-current="page"{% endif %}>My builds</a>
-      <a href="/components" {% if request.url.path == '/components' %}aria-current="page"{% endif %}>Components</a>
-      <a href="/report" {% if request.url.path == '/report' %}aria-current="page"{% endif %}>Report</a>
-      {% else %}
-      <a href="/login" {% if request.url.path == '/login' %}aria-current="page"{% endif %}>Log in</a>
-      {% endif %}
-    </nav>
+    <a class="brand" href="/">{{ brand_mark() }}<span>PC Build Planner</span></a>
     {% if user %}
-      <div class="account">
-        <span>{{ user.username }} ({{ user.role }})</span>
-        <form action="/logout" method="post">
-          <input type="hidden" name="csrf" value="{{ csrf }}">
-          <button class="small secondary" type="submit">Log out</button>
-        </form>
-      </div>
+    <nav class="main-nav" aria-label="Main navigation">
+      <ul>
+        <li><a href="/" {% if path == '/' %}aria-current="page"{% elif path.startswith('/builds') %}aria-current="true"{% endif %}>My builds</a></li>
+        <li><a href="/components" {% if path == '/components' %}aria-current="page"{% elif path.startswith('/components') %}aria-current="true"{% endif %}>Catalogue</a></li>
+        <li><a href="/report" {% if path == '/report' %}aria-current="page"{% endif %}>Reports</a></li>
+      </ul>
+    </nav>
+    <div class="account">
+      <span class="account-name">{{ user.username }}<span class="role role-{{ user.role }}">{{ user.role|capitalize }}</span></span>
+      <form action="/logout" method="post">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <button class="btn-ghost btn-sm" type="submit">Log out</button>
+      </form>
+    </div>
+    {% elif path != '/login' %}
+    <div class="account"><a class="btn btn-sm" href="/login">Log in</a></div>
     {% endif %}
   </div>
 </header>
-<main id="main" class="container">
-  {% if notice %}<p class="notice" role="status">{{ notice }}</p>{% endif %}
+<main id="main" class="container page{% block main_class %}{% endblock %}" tabindex="-1">
+  {% if notice %}<div class="notice notice-ok" role="status"><p>{{ notice }}</p></div>{% endif %}
   {% block content %}{% endblock %}
 </main>
-<footer class="container">PW2 prototype · 2026 · Demo catalogue and prices</footer>
+<footer class="site-footer">
+  <div class="container">
+    <span>PW2 prototype · 2026 · Real part models, demonstration prices</span>
+    <span>Compatibility covers CPU socket and memory type only.</span>
+  </div>
+</footer>
 </body>
 </html>

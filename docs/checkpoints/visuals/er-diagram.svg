@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 747" role="img" aria-label="Entity–relationship diagram">
+<defs><marker id="arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 1 L11 6 L0 11" fill="none" stroke="#087a73" stroke-width="1.8"/></marker></defs>
+<rect width="1200" height="747" rx="26" fill="#f0f5f4"/>
+<text x="42" y="49" font-family="system-ui,sans-serif" font-size="32" font-weight="750" fill="#172f34" text-anchor="start">Entity–relationship diagram</text>
+<text x="42" y="79" font-family="system-ui,sans-serif" font-size="17" font-weight="450" fill="#3d5656" text-anchor="start">SQLite schema · Every shown child FK is required · 1 → 0..* at each relationship</text>
+<rect x="48" y="130" width="310" height="151" rx="12" fill="#fff" stroke="#b6cfcb"/>
+<rect x="48" y="130" width="310" height="37" rx="10" fill="#dceae8" stroke="none"/>
+<text x="62" y="155" font-family="monospace" font-size="19" font-weight="700" fill="#172f34" text-anchor="start">users</text>
+<text x="62" y="191" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">PK id INTEGER</text>
+<text x="62" y="215" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">UK username TEXT</text>
+<text x="62" y="239" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">password_hash TEXT</text>
+<text x="62" y="263" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">role TEXT  student | admin</text>
+<rect x="445" y="130" width="310" height="175" rx="12" fill="#fff" stroke="#b6cfcb"/>
+<rect x="445" y="130" width="310" height="37" rx="10" fill="#17464a" stroke="none"/>
+<text x="459" y="155" font-family="monospace" font-size="19" font-weight="700" fill="#fff" text-anchor="start">builds</text>
+<text x="459" y="191" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">PK id INTEGER</text>
+<text x="459" y="215" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">FK user_id INTEGER</text>
+<text x="459" y="239" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">title TEXT</text>
+<text x="459" y="263" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">budget_cents INTEGER ≥ 0</text>
+<text x="459" y="287" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">created_at TEXT</text>
+<rect x="842" y="130" width="310" height="127" rx="12" fill="#fff" stroke="#b6cfcb"/>
+<rect x="842" y="130" width="310" height="37" rx="10" fill="#dceae8" stroke="none"/>
+<text x="856" y="155" font-family="monospace" font-size="19" font-weight="700" fill="#172f34" text-anchor="start">login_sessions</text>
+<text x="856" y="191" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">PK token_digest TEXT</text>
+<text x="856" y="215" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">FK user_id INTEGER</text>
+<text x="856" y="239" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">expires_at INTEGER</text>
+<rect x="48" y="440" width="310" height="103" rx="12" fill="#fff" stroke="#b6cfcb"/>
+<rect x="48" y="440" width="310" height="37" rx="10" fill="#17464a" stroke="none"/>
+<text x="62" y="465" font-family="monospace" font-size="19" font-weight="700" fill="#fff" text-anchor="start">categories</text>
+<text x="62" y="501" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">PK id INTEGER</text>
+<text x="62" y="525" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">UK name TEXT</text>
+<rect x="445" y="440" width="310" height="199" rx="12" fill="#fff" stroke="#b6cfcb"/>
+<rect x="445" y="440" width="310" height="37" rx="10" fill="#17464a" stroke="none"/>
+<text x="459" y="465" font-family="monospace" font-size="19" font-weight="700" fill="#fff" text-anchor="start">components</text>
+<text x="459" y="501" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">PK id INTEGER</text>
+<text x="459" y="525" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">FK category_id INTEGER</text>
+<text x="459" y="549" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">UK name TEXT</text>
+<text x="459" y="573" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">price_cents INTEGER ≥ 0</text>
+<text x="459" y="597" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">socket TEXT (optional)</text>
+<text x="459" y="621" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">ram_type TEXT (optional)</text>
+<rect x="842" y="440" width="310" height="175" rx="12" fill="#fff" stroke="#b6cfcb"/>
+<rect x="842" y="440" width="310" height="37" rx="10" fill="#17464a" stroke="none"/>
+<text x="856" y="465" font-family="monospace" font-size="19" font-weight="700" fill="#fff" text-anchor="start">build_items</text>
+<text x="856" y="501" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">PK id INTEGER</text>
+<text x="856" y="525" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">FK build_id INTEGER</text>
+<text x="856" y="549" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">FK component_id INTEGER</text>
+<text x="856" y="573" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">quantity INTEGER 1–20</text>
+<text x="856" y="597" font-family="monospace" font-size="15" font-weight="450" fill="#172f34" text-anchor="start">UK (build_id, component_id)</text>
+<path d="M358 210 H445" fill="none" stroke="#087a73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="401" y="197" font-family="system-ui,sans-serif" font-size="13" font-weight="650" fill="#172f34" text-anchor="middle">1 → 0..*</text>
+<path d="M203 130 V106 H997 V130" fill="none" stroke="#087a73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="600" y="103" font-family="system-ui,sans-serif" font-size="13" font-weight="650" fill="#172f34" text-anchor="middle">1 → 0..* · session</text>
+<path d="M600 305 V371 H997 V440" fill="none" stroke="#087a73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="798" y="358" font-family="system-ui,sans-serif" font-size="15" font-weight="650" fill="#172f34" text-anchor="middle">1 → 0..* · cascade</text>
+<path d="M358 517 H445" fill="none" stroke="#087a73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="401" y="503" font-family="system-ui,sans-serif" font-size="13" font-weight="650" fill="#172f34" text-anchor="middle">1 → 0..*</text>
+<path d="M755 517 H842" fill="none" stroke="#087a73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="798" y="503" font-family="system-ui,sans-serif" font-size="13" font-weight="650" fill="#172f34" text-anchor="middle">1 → 0..*</text>
+<text x="48" y="688" font-family="system-ui,sans-serif" font-size="17" font-weight="650" fill="#172f34" text-anchor="start">CASCADE · user → builds/sessions · build → items</text>
+<text x="48" y="715" font-family="system-ui,sans-serif" font-size="16" font-weight="450" fill="#172f34" text-anchor="start">RESTRICT · category → components · component → items     |     PK primary key · FK foreign key · UK unique</text>
+</svg>

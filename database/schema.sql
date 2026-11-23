@@ -26,7 +26,8 @@ CREATE TABLE IF NOT EXISTS components (
     name TEXT NOT NULL UNIQUE,
     price_cents INTEGER NOT NULL CHECK (price_cents >= 0),
     socket TEXT,
-    ram_type TEXT
+    ram_type TEXT,
+    specs TEXT NOT NULL DEFAULT ''
 );
 
 CREATE TABLE IF NOT EXISTS builds (

@@ -1,0 +1,58 @@
+{# Shared presentation helpers. Money stays in integer cents until display. #}
+{% macro money(cents) -%}
+€{{ '{:,.2f}'.format(cents / 100) }}
+{%- endmacro %}
+
+{% macro part_icon(category, class='part-icon') -%}
+<svg class="{{ class }}" aria-hidden="true" focusable="false"><use href="/static/parts.svg#{{ category|lower }}"></use></svg>
+{%- endmacro %}
+
+{% macro brand_mark() -%}
+<svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="bm-body" x="3" y="3" width="26" height="26" rx="3"/>
+  <rect class="bm-signal" x="9" y="9" width="6" height="6" rx="1"/>
+  <rect class="bm-cell" x="17" y="9" width="6" height="6" rx="1"/>
+  <rect class="bm-cell" x="9" y="17" width="6" height="6" rx="1"/>
+  <rect class="bm-cell bm-dim" x="17" y="17" width="6" height="6" rx="1"/>
+</svg>
+{%- endmacro %}
+
+{# Key specifications are stored as one line separated by semicolons. #}
+{% macro spec_list(specs, class='spec-list') -%}
+{% if specs %}<ul class="{{ class }}">{% for spec in specs.split(';') if spec.strip() %}<li>{{ spec.strip() }}</li>{% endfor %}</ul>{% endif %}
+{%- endmacro %}
+
+{% macro chips(part) -%}
+{% if part.socket or part.ram_type %}<span class="chips">{% if part.socket %}<span class="chip" title="CPU socket">{{ part.socket }}</span>{% endif %}{% if part.ram_type %}<span class="chip" title="Memory type">{{ part.ram_type }}</span>{% endif %}</span>{% endif %}
+{%- endmacro %}
+
+{# Text status for a total against its budget. #}
+{% macro budget_line(total, budget) -%}
+{% if not budget %}<span class="state state-neutral">No budget limit</span>
+{% elif total > budget %}<span class="state state-bad">{{ money(total - budget) }} over budget</span>
+{% else %}<span class="state state-ok">{{ money(budget - total) }} left</span>{% endif %}
+{%- endmacro %}
+
+{% macro compat_badge(state) -%}
+{% if state == 'ok' %}<span class="state state-ok">Socket and memory match</span>
+{% elif state == 'issue' %}<span class="state state-bad">Compatibility problem</span>
+{% else %}<span class="state state-neutral">Checks not complete</span>{% endif %}
+{%- endmacro %}
+
+{# Budget bar: total against budget, drawn with SVG attributes so no inline styles are needed. #}
+{% macro budget_bar(total, budget, class='bar') -%}
+{% if budget %}{% set used = [total * 100 / budget, 100]|min %}{% else %}{% set used = 0 %}{% endif %}
+<svg class="{{ class }}{% if budget and total > budget %} is-over{% endif %}" viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+  <rect class="bar-track" width="100" height="6"/>
+  <rect class="bar-fill" width="{{ '%.2f'|format(used) }}" height="6"/>
+</svg>
+{%- endmacro %}
+
+{# Seven small slots that show which parts a build already has. #}
+{% macro slot_strip(chosen) -%}
+<ol class="slot-strip" aria-label="Parts chosen">
+{% for category in CATEGORY_ORDER %}
+  <li class="{{ 'is-filled' if category in chosen else 'is-empty' }}" title="{{ CATEGORY_LABELS[category] }}{{ '' if category in chosen else ' not chosen' }}">{{ part_icon(category, 'strip-icon') }}<span class="visually-hidden">{{ CATEGORY_LABELS[category] }}: {{ 'chosen' if category in chosen else 'not chosen' }}</span></li>
+{% endfor %}
+</ol>
+{%- endmacro %}

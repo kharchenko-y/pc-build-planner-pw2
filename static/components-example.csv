@@ -1,4 +1,4 @@
-category,name,price_eur,socket,ram_type
-CPU,Example Ryzen processor,139.90,AM5,
-Motherboard,Example microATX motherboard,109.00,AM5,DDR5
-RAM,Example 32 GB memory kit,79.00,,DDR5
+category,name,price_eur,socket,ram_type,specs
+CPU,AMD Ryzen 5 9600X,229.00,AM5,,6 cores / 12 threads; 3.9–5.4 GHz; 65 W TDP
+Motherboard,Example B650 micro-ATX board,119.00,AM5,DDR5,AMD B650; Micro-ATX; 4 × DDR5 slots
+RAM,Example 32 GB DDR5 kit,89.00,,DDR5,2 × 16 GB; 6000 MT/s

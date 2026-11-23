@@ -1,41 +1,113 @@
 {% extends 'base.html' %}
-{% block title %}My builds | PC Build Planner{% endblock %}
+{% from '_macros.html' import money, part_icon, budget_line, compat_badge, budget_bar, slot_strip %}
+{% block title %}{% if user %}My builds{% else %}Plan a PC build{% endif %} | PC Build Planner{% endblock %}
 {% block content %}
-<section class="intro">
-  <p class="kicker">WWW Development Technologies · Practical Work II</p>
-  <h1>Plan your PC build</h1>
-  <p>Create a configuration, add components from the catalogue, and calculate its total cost.</p>
-  {% if not user %}
-    <p><a class="button" href="/login">Log in to try the demo</a></p>
-  {% else %}
-    <p><a class="button" href="/builds/new">+ Create a build</a></p>
-  {% endif %}
-</section>
-{% if user %}
-<section>
-  <h2>My saved builds</h2>
-  <form class="view-options" method="post" action="/preferences/build-view">
-    <input type="hidden" name="csrf" value="{{ csrf }}">
-    <label for="view">Build view</label>
-    <select id="view" name="view">
-      <option value="cards" {% if view == 'cards' %}selected{% endif %}>Cards</option>
-      <option value="list" {% if view == 'list' %}selected{% endif %}>List</option>
-    </select>
-    <button class="small secondary" type="submit">Save view</button>
-  </form>
-  {% if builds %}
-    <div class="{{ 'cards' if view == 'cards' else 'build-list' }}">
-    {% for build in builds %}
-      <article class="card">
-        <h3><a href="/builds/{{ build.id }}">{{ build.title }}</a></h3>
-        <p>Current cost: <strong>€{{ '%.2f'|format(build.total_cents / 100) }}</strong></p>
-        <p>Budget: {% if build.budget_cents %}€{{ '%.2f'|format(build.budget_cents / 100) }}{% else %}No limit{% endif %}</p>
-      </article>
-    {% endfor %}
+{% if not user %}
+<section class="intro" aria-labelledby="intro-title">
+  <div>
+    <h1 id="intro-title">Plan a desktop PC part by part.</h1>
+    <p>Fill seven slots from a catalogue of real components. The planner keeps the total against your budget and checks that the processor and memory suit the motherboard.</p>
+    <div class="actions">
+      <a class="btn" href="/login">Log in to start a build</a>
+      <span class="muted">Accounts are provided for the class.</span>
     </div>
+  </div>
+  <div class="sheet preview" aria-label="Example of a build in progress">
+    <div class="preview-row">{{ part_icon('CPU') }}<div><small>Processor</small><strong>AMD Ryzen 5 7600</strong></div><span class="money">€190.00</span></div>
+    <div class="preview-row">{{ part_icon('Motherboard') }}<div><small>Motherboard</small><strong>MSI PRO B650M-A WIFI</strong></div><span class="money">€130.00</span></div>
+    <div class="preview-row">{{ part_icon('RAM') }}<div><small>Memory</small><strong>Kingston FURY Beast 16 GB DDR5-5600</strong></div><span class="money">€55.00</span></div>
+    {% for category in ['GPU', 'Storage', 'PSU', 'Case'] %}
+    <div class="preview-row is-empty">{{ part_icon(category) }}<div><small>{{ CATEGORY_LABELS[category] }}</small><strong>Not chosen yet</strong></div><span></span></div>
+    {% endfor %}
+    <div class="preview-foot"><span>Total of €800.00 budget</span><span class="money">€375.00</span></div>
+  </div>
+</section>
+<section class="facts" aria-label="What the planner does">
+  <div><h2>Real parts, demo prices</h2><p>Models and key specifications come from manufacturer data. Prices are set for the demonstration and are not shop offers.</p></div>
+  <div><h2>Two honest checks</h2><p>CPU socket and memory type are compared with the motherboard. Power, cooling, BIOS and case fit are not checked.</p></div>
+  <div><h2>Print or export</h2><p>Each build has a printable parts sheet and a CSV export for spreadsheets.</p></div>
+</section>
+{% else %}
+<div class="page-head">
+  <div>
+    <h1>My builds</h1>
+    <p class="lede">{% if builds %}Continue a build or start another one. Totals use current catalogue prices.{% else %}Start with a name and a budget, then fill the seven part slots.{% endif %}</p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-ghost" href="/components">Browse catalogue</a>
+  </div>
+</div>
+
+<form class="sheet quick-start" method="post" action="/builds/new">
+  <h2>Start a new build</h2>
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <div class="field">
+    <label for="new-title">Build name</label>
+    <input id="new-title" name="title" minlength="2" maxlength="60" required placeholder="For example, Gaming PC" autocomplete="off">
+  </div>
+  <div class="field">
+    <label for="new-budget">Budget (EUR)</label>
+    <div class="affix"><span aria-hidden="true">€</span><input id="new-budget" name="budget" type="number" min="0" max="100000" step="0.01" value="1000" inputmode="decimal" required></div>
+  </div>
+  <button type="submit">Create build</button>
+</form>
+
+{% if builds %}
+<section aria-labelledby="saved-title">
+  <div class="toolbar">
+    <h2 id="saved-title">Saved builds <span class="muted">({{ builds|length }})</span></h2>
+    <form class="segmented" method="post" action="/preferences/build-view">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <span id="view-label">View</span>
+      <span class="segmented-group" role="group" aria-labelledby="view-label">
+        <button type="submit" name="view" value="cards" aria-pressed="{{ 'true' if view == 'cards' else 'false' }}">Cards</button>
+        <button type="submit" name="view" value="list" aria-pressed="{{ 'true' if view == 'list' else 'false' }}">List</button>
+      </span>
+    </form>
+  </div>
+  {% if view == 'cards' %}
+  <div class="build-grid">
+    {% for b in builds %}
+    <article class="sheet build-tile">
+      <div>
+        <h3><a href="/builds/{{ b.build.id }}">{{ b.build.title }}</a></h3>
+        <p class="meta">{{ b.chosen|length }} of 7 parts · {{ b.parts|length }} {{ 'item' if b.parts|length == 1 else 'items' }}</p>
+      </div>
+      {{ slot_strip(b.chosen) }}
+      <div>
+        <p class="figures"><span class="total money">{{ money(b.total) }}</span><span class="of">{% if b.budget %}of {{ money(b.budget) }}{% else %}no budget limit{% endif %}</span></p>
+        {{ budget_bar(b.total, b.budget) }}
+      </div>
+      <div class="tile-foot">{{ budget_line(b.total, b.budget) }}{{ compat_badge(b.state) }}</div>
+      {% if b.missing %}<p class="missing">Still to choose: {% for c in b.missing %}{{ CATEGORY_LABELS[c]|lower }}{{ ', ' if not loop.last }}{% endfor %}.</p>{% endif %}
+    </article>
+    {% endfor %}
+  </div>
   {% else %}
-    <p>No saved builds yet. Create your first configuration.</p>
+  <div class="build-list">
+    {% for b in builds %}
+    <article class="build-row">
+      <div>
+        <h3><a href="/builds/{{ b.build.id }}">{{ b.build.title }}</a></h3>
+        <p class="missing">{{ b.chosen|length }} of 7 parts</p>
+      </div>
+      {{ slot_strip(b.chosen) }}
+      <div>
+        <p class="figures"><span class="total money">{{ money(b.total) }}</span><span class="of">{% if b.budget %}of {{ money(b.budget) }}{% endif %}</span></p>
+        {{ budget_bar(b.total, b.budget) }}
+      </div>
+      <div class="end">{{ budget_line(b.total, b.budget) }}</div>
+    </article>
+    {% endfor %}
+  </div>
   {% endif %}
 </section>
+{% else %}
+<section class="sheet empty" aria-labelledby="empty-title">
+  <div class="empty-slots" aria-hidden="true">{% for c in CATEGORY_ORDER %}{{ part_icon(c) }}{% endfor %}</div>
+  <h2 id="empty-title">No builds yet</h2>
+  <p>Name your first build above. You will then pick a processor, motherboard and the other parts one slot at a time.</p>
+</section>
+{% endif %}
 {% endif %}
 {% endblock %}
