@@ -5,6 +5,7 @@ AMOUNT = re.compile(r"[0-9]{1,6}(?:\.[0-9]{1,2})?")
 SOCKET = re.compile(r"[A-Z0-9][A-Z0-9 -]{0,19}")
 RAM_TYPES = {"DDR3", "DDR4", "DDR5"}
 COMPATIBILITY_CATEGORIES = {"CPU", "Motherboard", "RAM"}
+COMPATIBLE = "CPU socket and RAM generation match the motherboard."
 
 
 def money_cents(raw):
@@ -66,7 +67,7 @@ def compatibility(items):
         if memory["ram_type"] != board["ram_type"]:
             warnings.append(f"Memory {memory['ram_type']} does not match motherboard memory type {board['ram_type']}.")
     if checks == 2 and not warnings:
-        return [], "CPU socket and RAM generation match the motherboard."
+        return [], COMPATIBLE
     if checks < 2:
         return warnings, "Complete both checks by selecting a CPU and RAM with known specifications."
     return warnings, ""

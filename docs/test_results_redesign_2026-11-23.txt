@@ -1,0 +1,121 @@
+PC Build Planner — interface redesign verification, 23 November 2026 (local)
+
+Environment: offline Linux sandbox, Python 3.13.18, Starlette 1.7.0, Jinja2 3.1.6, uvicorn 0.54.0, pytest 9.1.1,
+httpx 0.28.1, Beautiful Soup 4.15.0. FastAPI could not be installed (no network); the suite and the server ran
+through a minimal FastAPI-compatible shim kept outside the project. The unchanged baseline gave the documented
+24 passed and 12 subtests passed under the same shim. Re-run on a clean install with requirements-dev.txt.
+
+== python -m pytest -q -rA ==
+tests/test_app.py::test_login_and_create_build_with_components
+tests/test_app.py::test_build_update_delete_and_xss_escaping
+tests/test_app.py::test_csrf_blocks_write
+tests/test_app.py::test_role_blocks_admin_only
+tests/test_app.py::test_admin_can_add_component
+tests/test_app.py::test_unauthorized_own_build
+tests/test_app.py::test_search_sql_injection_is_data
+tests/test_app.py::test_csv_formula_not_executed
+tests/test_app.py::test_reject_invalid_budget
+tests/test_app.py::test_duplicate_component_is_rejected
+tests/test_app.py::test_view_cookie_requires_csrf_and_survives_logout
+tests/test_app.py::test_delete_requires_explicit_confirmation
+tests/test_app.py::test_component_fragment_and_permission
+tests/test_app.py::test_import_update_delete_component
+tests/test_app.py::test_logout_revokes_previously_issued_session
+tests/test_app.py::test_build_summary_shows_total_budget_and_compatibility
+tests/test_domain.py::DomainTests::test_amounts_are_stored_as_cents
+tests/test_domain.py::DomainTests::test_category_specific_specs
+tests/test_domain.py::DomainTests::test_csv_input_validation
+tests/test_domain.py::DomainTests::test_incompatible_socket_and_memory
+tests/test_domain.py::DatabaseTests::test_csv_transaction_rolls_back_on_conflict
+tests/test_domain.py::DatabaseTests::test_foreign_key_restrict_and_cascade
+tests/test_domain.py::DatabaseTests::test_password_hash_is_salted_and_verifiable
+tests/test_domain.py::DatabaseTests::test_seed_and_restart
+tests/test_domain.py::DatabaseTests::test_two_criteria_search_and_literal_wildcards
+25 passed, 12 subtests passed in 5.50s
+
+== python -m unittest discover -s tests -p test_domain.py ==
+Ran 9 tests ... OK
+
+== Browser walkthrough (Playwright script, 1440/768/390 px) ==
+Playwright Chromium 157.0.8103.78: 76 checks passed, 0 failed
+Chrome for Testing 153.0.8010.12: 76 checks passed, 0 failed
+JavaScript disabled (Chromium 157): catalogue search form submits normally, AM5 + CPU returns 1 row
+
+PASS browser version Playwright Chromium 157.0.8103.78
+PASS public home has login CTA
+PASS audit public home @1440
+PASS skip link visible on first Tab
+PASS anonymous protected URL returns 401 page with Log in
+PASS login error shown
+PASS login fields flagged invalid
+PASS audit login error @1440
+PASS student logged in
+PASS empty state on My builds
+PASS audit builds empty @1440
+PASS invalid budget rejected with field error
+PASS safe input preserved
+PASS audit form error @1440
+PASS notice after create
+PASS total €375.00 €375.00
+PASS budget visible
+PASS remaining €425.00
+PASS compatibility passed
+PASS CPU options disabled while a CPU is selected
+PASS audit build detail @1440
+PASS quantity update → €525.00 €525.00
+PASS unit price shown for qty>1
+PASS removal → back to €375.00
+PASS removal notice
+PASS audit edit form @1440
+PASS edit saved
+PASS over budget status Over by €45.00
+This build is over budget.
+Mismatch found
+PASS mismatch shown
+PASS incomplete status without motherboard
+PASS no-limit budget text
+PASS audit builds cards @1440
+PASS list view cookie
+PASS list button pressed
+PASS list view persists across navigation
+PASS async search AM5/CPU → 1 row without navigation
+PASS URL reflects filters http://127.0.0.1:8000/components?q=AM5&category=CPU
+PASS student sees no manage links
+PASS audit components @1440
+PASS student blocked from /components/new (403)
+PASS report shows €375.00
+PASS audit report @1440
+PASS CSV export contains Campus PC 375.00 [['Build', 'Created', 'Total (EUR)'], ['Starter idea', '2026-11-23 19:42:45', '290.00']]
+PASS print hides navigation and buttons
+PASS Tab from picker reaches Add component
+PASS visible focus outline solid 3px
+PASS audit confirm delete @1440
+PASS 404 page
+PASS audit builds @390
+PASS audit detail @390
+PASS audit components @390
+PASS audit report @390
+PASS audit new build @390
+PASS mobile order: summary → add → parts → details [315, 557, 846, 1598]
+PASS mobile parts list fits without local scroll [322, 322]
+PASS audit builds @768
+PASS audit detail @768
+PASS audit components @768
+PASS audit report @768
+PASS audit new build @768
+PASS audit builds @1440
+PASS audit detail @1440
+PASS audit components @1440
+PASS audit report @1440
+PASS audit new build @1440
+PASS audit public home @390
+PASS audit login @390
+PASS admin sees Add and Import
+PASS admin sees Edit/Delete per row
+PASS audit components admin @1440
+PASS audit component form @1440
+PASS import error shown
+PASS audit import error @1440
+PASS import success
+PASS delete of used component refused (409)
+PASS no console errors or CSP violations (except intentional 401/404/409 pages)

@@ -194,3 +194,18 @@ def test_logout_revokes_previously_issued_session(client):
     client.cookies.clear()
     client.cookies.set("pcbuild_session", cookie)
     assert client.get("/builds/new").status_code == 401
+
+
+def test_build_summary_shows_total_budget_and_compatibility(client):
+    login(client)
+    token = csrf(client, "/builds/new")
+    result = client.post("/builds/new", data={"title": "Campus PC", "budget": "800", "csrf": token}, follow_redirects=False)
+    build_id = int(result.headers["location"].split("/")[-1])
+    for component_id in (1, 3, 5):  # Demo CPU AM5, Demo motherboard AM5, 16 GB DDR5 demo kit
+        client.post(f"/builds/{build_id}/items", data={"component_id": component_id, "csrf": csrf(client, f"/builds/{build_id}")})
+    document = BeautifulSoup(client.get(f"/builds/{build_id}").text, "html.parser")
+    assert document.select_one(".summary-total .total").get_text(strip=True) == "€375.00"
+    assert "€425.00 left" in document.select_one(".budget-state").get_text()
+    assert document.select_one(".compat .status-ok").get_text(strip=True) == "Compatible"
+    assert document.select_one('#component option[value="1"]').has_attr("disabled")
+    assert "€375.00" in client.get("/report").text

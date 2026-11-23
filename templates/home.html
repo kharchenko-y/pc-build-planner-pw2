@@ -1,41 +1,100 @@
 {% extends 'base.html' %}
-{% block title %}My builds | PC Build Planner{% endblock %}
+{% from '_macros.html' import money, meter, budget_status, empty_icon %}
+{% block title %}{% if user %}My builds{% else %}Plan a PC build{% endif %} | PC Build Planner{% endblock %}
 {% block content %}
-<section class="intro">
-  <p class="kicker">WWW Development Technologies · Practical Work II</p>
-  <h1>Plan your PC build</h1>
-  <p>Create a configuration, add components from the catalogue, and calculate its total cost.</p>
-  {% if not user %}
-    <p><a class="button" href="/login">Log in to try the demo</a></p>
-  {% else %}
-    <p><a class="button" href="/builds/new">+ Create a build</a></p>
-  {% endif %}
-</section>
-{% if user %}
-<section>
-  <h2>My saved builds</h2>
-  <form class="view-options" method="post" action="/preferences/build-view">
-    <input type="hidden" name="csrf" value="{{ csrf }}">
-    <label for="view">Build view</label>
-    <select id="view" name="view">
-      <option value="cards" {% if view == 'cards' %}selected{% endif %}>Cards</option>
-      <option value="list" {% if view == 'list' %}selected{% endif %}>List</option>
-    </select>
-    <button class="small secondary" type="submit">Save view</button>
-  </form>
-  {% if builds %}
-    <div class="{{ 'cards' if view == 'cards' else 'build-list' }}">
-    {% for build in builds %}
-      <article class="card">
-        <h3><a href="/builds/{{ build.id }}">{{ build.title }}</a></h3>
-        <p>Current cost: <strong>€{{ '%.2f'|format(build.total_cents / 100) }}</strong></p>
-        <p>Budget: {% if build.budget_cents %}€{{ '%.2f'|format(build.budget_cents / 100) }}{% else %}No limit{% endif %}</p>
-      </article>
-    {% endfor %}
+{% if not user %}
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero-copy">
+    <h1 id="hero-title">Plan a PC build that fits your budget.</h1>
+    <p>Pick parts from a shared catalogue, see the running total against your budget, check that the CPU and memory suit the motherboard, then print or export the result.</p>
+    <div class="hero-actions">
+      <a class="btn" href="/login">Log in to plan a build</a>
+      <span class="muted">Accounts are provided for the class demonstration.</span>
     </div>
-  {% else %}
-    <p>No saved builds yet. Create your first configuration.</p>
-  {% endif %}
+  </div>
+  <div class="workflow">
+    <h2>How a build comes together</h2>
+    <ol>
+      <li><div><strong>Create a build</strong><span>Name it and set a budget in euros, or leave it unlimited.</span></div></li>
+      <li><div><strong>Add parts</strong><span>Choose CPU, motherboard, RAM and the rest from the catalogue. Set quantities for drives and memory.</span></div></li>
+      <li><div><strong>Check the essentials</strong><span>CPU socket and RAM generation are compared with the motherboard.</span></div></li>
+      <li><div><strong>Print or export</strong><span>A report lists every build with its current total. Download it as CSV.</span></div></li>
+    </ol>
+  </div>
 </section>
+<section class="panel" aria-labelledby="scope-title">
+  <h2 id="scope-title" class="visually-hidden">What the planner covers</h2>
+  <div class="scope-grid">
+    <div>
+      <h2>Checked</h2>
+      <ul>
+        <li>CPU socket against the motherboard socket</li>
+        <li>RAM generation against the motherboard memory type</li>
+        <li>Total cost against the build budget</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Not checked</h2>
+      <ul>
+        <li>BIOS support, cooling and physical clearance</li>
+        <li>Power supply capacity and other requirements</li>
+      </ul>
+    </div>
+    <div>
+      <h2>About the catalogue</h2>
+      <ul>
+        <li>Parts and prices are demonstration data</li>
+        <li>Totals always use the current catalogue price</li>
+      </ul>
+    </div>
+  </div>
+</section>
+{% else %}
+<div class="page-head">
+  <div>
+    <h1>My builds</h1>
+    <p class="lede">{% if builds %}{{ builds|length }} saved {{ 'build' if builds|length == 1 else 'builds' }}. Totals use current catalogue prices.{% else %}Create a build, then add parts from the catalogue.{% endif %}</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn" href="/builds/new">+ Create a build</a>
+  </div>
+</div>
+{% if builds %}
+<section aria-labelledby="saved-title">
+  <div class="toolbar">
+    <h2 id="saved-title">Saved builds</h2>
+    <form class="segmented" method="post" action="/preferences/build-view">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <span class="segmented-label" id="view-label">Build view</span>
+      <span class="segmented-group" role="group" aria-labelledby="view-label">
+        <button type="submit" name="view" value="cards" aria-pressed="{{ 'true' if view == 'cards' else 'false' }}">Cards</button>
+        <button type="submit" name="view" value="list" aria-pressed="{{ 'true' if view == 'list' else 'false' }}">List</button>
+      </span>
+    </form>
+  </div>
+  <div class="{{ 'cards' if view == 'cards' else 'build-list' }}">
+  {% for build in builds %}
+    <article class="build-card">
+      <h3><a href="/builds/{{ build.id }}">{{ build.title }}</a></h3>
+      <p class="figures">
+        <span class="total money">{{ money(build.total_cents) }}</span>
+        <span class="of">{% if build.budget_cents %}of <span class="money">{{ money(build.budget_cents) }}</span> budget{% else %}no budget limit{% endif %}</span>
+      </p>
+      {{ meter(build.total_cents, build.budget_cents) }}
+      <div class="card-foot">
+        {{ budget_status(build.total_cents, build.budget_cents) }}
+      </div>
+    </article>
+  {% endfor %}
+  </div>
+</section>
+{% else %}
+<section class="empty-state" aria-labelledby="empty-title">
+  {{ empty_icon() }}
+  <h2 id="empty-title">No saved builds yet</h2>
+  <p>Start with a name and a budget. You can add a CPU, motherboard and memory next and check that they fit together.</p>
+  <a class="btn" href="/builds/new">+ Create a build</a>
+</section>
+{% endif %}
 {% endif %}
 {% endblock %}

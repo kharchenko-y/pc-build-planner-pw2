@@ -1,15 +1,34 @@
 {% extends 'base.html' %}
-{% block title %}Login | PC Build Planner{% endblock %}
+{% from '_macros.html' import brand_mark %}
+{% block title %}Log in | PC Build Planner{% endblock %}
 {% block content %}
-<h1>Login</h1>
-<p>Sign in with the account provided for your demonstration.</p>
-{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
-<form class="form" method="post" action="/login">
-  <input type="hidden" name="csrf" value="{{ csrf }}">
-  <label for="username">Username</label>
-  <input id="username" name="username" required maxlength="32" autocomplete="username">
-  <label for="password">Password</label>
-  <input id="password" name="password" type="password" required maxlength="128" autocomplete="current-password">
-  <button type="submit">Log in</button>
-</form>
+<div class="auth">
+  <div class="auth-aside">
+    {{ brand_mark() }}
+    <h2>PC Build Planner</h2>
+    <p>Plan desktop builds against a budget and keep them in one place.</p>
+    <ul>
+      <li>Save several builds and compare their totals</li>
+      <li>Check CPU socket and RAM generation against the motherboard</li>
+      <li>Print a report or export it as CSV</li>
+    </ul>
+  </div>
+  <div class="auth-form">
+    <h1>Log in</h1>
+    <p class="lede">Sign in with the account provided for your demonstration.</p>
+    {% if error %}<div class="alert alert-error" role="alert" id="login-error"><p>{{ error }}</p></div>{% endif %}
+    <form class="form" method="post" action="/login">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" name="username" required maxlength="32" autocomplete="username" autocapitalize="none" spellcheck="false"{% if error %} aria-invalid="true" aria-describedby="login-error"{% endif %}>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" required maxlength="128" autocomplete="current-password"{% if error %} aria-invalid="true" aria-describedby="login-error"{% endif %}>
+      </div>
+      <button class="btn-block" type="submit">Log in</button>
+    </form>
+  </div>
+</div>
 {% endblock %}

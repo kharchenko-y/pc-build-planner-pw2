@@ -25,6 +25,7 @@ Open http://127.0.0.1:8000. The local seed accounts are `student` and `admin`, b
 - Compatibility checks compare CPU socket and RAM generation to the motherboard. The display calls out missing data or mismatches. It does not check BIOS, physical clearance, cooling, power supply, or other hardware requirements.
 - Users can print a current report and download a CSV. The administrator CSV importer checks headers, UTF-8, row count and file size. The import commits all rows together.
 - A 30-day `pcbuild_view` cookie stores the user's Cards or List preference.
+- The build page puts the parts list beside a summary of total, budget, remaining amount, compatibility status and cost by category. On phones the summary comes first, followed by the part picker and the list. See [the interface notes](docs/07_interface_redesign.md).
 
 ## Architecture and security
 
@@ -49,10 +50,10 @@ The [classroom deployment](https://yarslv.pythonanywhere.com/) was verified on 2
 
 - `python -m pytest -q` runs all tests with development dependencies installed.
 - `python -m unittest discover -s tests -p test_domain.py -v` runs Python/SQLite tests without external test dependencies.
-- [Checkpoint script](docs/03_tomorrow_checkpoint.md), [learning guide in Russian](docs/04_learning_guide_RU.md), [test matrix](docs/06_test_matrix.md), [ER diagram](docs/er_diagram.mmd).
+- [Checkpoint script](docs/03_tomorrow_checkpoint.md), [learning guide in Russian](docs/04_learning_guide_RU.md), [test matrix](docs/06_test_matrix.md), [ER diagram](docs/er_diagram.mmd), [interface redesign notes](docs/07_interface_redesign.md) and [redesign test results](docs/test_results_redesign_2026-11-23.txt).
 
 ## Dependencies and attribution
 
-Python 3.11+, SQLite from Python, FastAPI, Uvicorn, Jinja2, python-multipart, itsdangerous and a2wsgi. Development dependencies are pytest, HTTPX and Beautiful Soup. Supported dependency ranges are listed in the requirements files. The HTML, CSS, seed data and diagrams are project materials. They use no external media.
+Python 3.11+, SQLite from Python, FastAPI, Uvicorn, Jinja2, python-multipart, itsdangerous and a2wsgi. Development dependencies are pytest, HTTPX and Beautiful Soup. Supported dependency ranges are listed in the requirements files. The HTML, CSS, icons, seed data and diagrams are project materials. The interface font is Fira Sans by The Mozilla Foundation and Telefonica S.A., under the SIL Open Font License 1.1. A Latin subset is served from `static/fonts/` with its licence in `static/fonts/OFL.txt`. No resources load from other sites.
 
-Material AI assistance was used for the initial prototype, code changes and documentation. The team must review, test and explain each submitted feature. The project registration must carry both students’ actual names. Record each person's completed contribution and corresponding commits in [the contribution log](docs/05_backlog.md). Add the approved team credit and contact email before final submission.
+Material AI assistance was used for the initial prototype, code changes and documentation. The 23 November 2026 interface redesign (templates, CSS, two small view-data changes and one test) was produced with Claude; see [the redesign notes](docs/07_interface_redesign.md). The team must review, test and explain each submitted feature. The project registration must carry both students’ actual names. Record each person's completed contribution and corresponding commits in [the contribution log](docs/05_backlog.md). Add the approved team credit and contact email before final submission.

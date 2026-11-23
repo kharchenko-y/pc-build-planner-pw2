@@ -1,65 +1,176 @@
 {% extends 'base.html' %}
+{% from '_macros.html' import money, category_class, budget_status, empty_icon %}
 {% block title %}{{ build.title }} | PC Build Planner{% endblock %}
 {% block content %}
-<p><a href="/">← My builds</a></p>
-<h1>{{ build.title }}</h1>
-<p>Budget: {% if build.budget_cents %}€{{ '%.2f'|format(build.budget_cents/100) }}{% else %}No limit{% endif %}
-  · Total: <strong>€{{ '%.2f'|format(total/100) }}</strong></p>
-{% if total > build.budget_cents and build.budget_cents > 0 %}<p class="warning">This build is over budget.</p>{% endif %}
-<h2>Compatibility</h2>
-{% if warnings %}<ul class="warning">{% for warning in warnings %}<li>{{ warning }}</li>{% endfor %}</ul>{% endif %}
-{% if compatibility_status %}<p class="note">{{ compatibility_status }}</p>{% endif %}
-<h2>Selected components</h2>
-{% if items %}
-<div class="table-wrap">
-<table>
- <caption>Components saved in this build</caption>
- <thead><tr><th scope="col">Category</th><th scope="col">Component</th><th scope="col">Quantity</th><th scope="col">Subtotal</th><th scope="col">Action</th></tr></thead>
- <tbody>
- {% for item in items %}
- <tr>
-   <td>{{ item.category }}</td><td>{{ item.name }}</td>
-   <td>
-     {% if item.category in ('CPU', 'Motherboard') %}
-       {{ item.quantity }}
-     {% else %}
-       <form class="quantity-form" method="post" action="/builds/{{ build.id }}/items/{{ item.id }}/quantity">
-         <input type="hidden" name="csrf" value="{{ csrf }}">
-         <label class="visually-hidden" for="quantity-{{ item.id }}">Quantity for {{ item.name }}</label>
-         <input id="quantity-{{ item.id }}" name="quantity" type="number" min="1" max="20" value="{{ item.quantity }}" required>
-         <button class="small secondary" type="submit">Update</button>
-       </form>
-     {% endif %}
-   </td>
-   <td>€{{ '%.2f'|format(item.price_cents * item.quantity / 100) }}</td>
-   <td>
-     <details>
-       <summary>Remove</summary>
-       <form method="post" action="/builds/{{ build.id }}/items/{{ item.id }}/delete">
-         <input type="hidden" name="csrf" value="{{ csrf }}">
-         <button class="small danger" type="submit" name="confirmed" value="yes">Confirm removal</button>
-       </form>
-     </details>
-   </td>
- </tr>
- {% endfor %}
- </tbody>
-</table>
+{#- Cost per category, in catalogue order, for the budget bar and legend. -#}
+{%- set ns = namespace(order=[], sums={}, x=0) -%}
+{%- for item in items -%}
+  {%- if item.category not in ns.sums -%}{%- set ns.order = ns.order + [item.category] -%}{%- endif -%}
+  {%- set _ = ns.sums.update({item.category: ns.sums.get(item.category, 0) + item.price_cents * item.quantity}) -%}
+{%- endfor -%}
+{%- set budget = build.budget_cents -%}
+{%- set scale = [total, budget]|max -%}
+{%- set in_build = items|map(attribute='name')|list -%}
+{%- set used_categories = items|map(attribute='category')|list -%}
+{%- set single = ['CPU', 'Motherboard', 'RAM'] -%}
+<nav class="breadcrumb" aria-label="Breadcrumb">
+  <ol>
+    <li><a href="/">My builds</a></li>
+    <li aria-current="page">{{ build.title }}</li>
+  </ol>
+</nav>
+<div class="page-head">
+  <div>
+    <h1>{{ build.title }}</h1>
+    <p class="lede">{{ items|length }} {{ 'part' if items|length == 1 else 'parts' }} selected. Prices come from the current catalogue.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-secondary" href="/builds/{{ build.id }}/edit">Edit build</a>
+    <a class="btn btn-danger-quiet" href="/builds/{{ build.id }}/delete">Delete build</a>
+  </div>
 </div>
-{% else %}<p>No components selected yet.</p>{% endif %}
-<h2>Add a component</h2>
-<form method="post" action="/builds/{{ build.id }}/items" class="form">
-  <input type="hidden" name="csrf" value="{{ csrf }}">
-  <label for="component">Choose from catalogue</label>
-  <select id="component" name="component_id" required>
-    {% for component in components %}
-      <option value="{{ component.id }}">{{ component.category }} — {{ component.name }} (€{{ '%.2f'|format(component.price_cents / 100) }})</option>
-    {% endfor %}
-  </select>
-  <button type="submit">Add component</button>
-</form>
-<div class="actions">
-  <a href="/builds/{{ build.id }}/edit">Edit build</a>
-  <a href="/builds/{{ build.id }}/delete">Delete build</a>
+
+<div class="build-layout">
+  <div class="summary">
+    <section class="panel summary-head" aria-labelledby="summary-title">
+      <h2 id="summary-title" class="visually-hidden">Cost summary</h2>
+      <div class="summary-total">
+        <span class="label">Current total</span>
+        <span class="total money">{{ money(total) }}</span>
+        <span class="of">{% if budget %}of <span class="money">{{ money(budget) }}</span> budget{% else %}No budget limit{% endif %}</span>
+      </div>
+      <div class="budget-state">
+        {{ budget_status(total, budget) }}
+        {% if budget and total > budget %}<span class="visually-hidden">This build is over budget.</span>{% endif %}
+        <a class="status-link" href="#compat-title">{% if compatibility_state == 'ok' %}<span class="status status-ok">Compatible</span>{% elif compatibility_state == 'issue' %}<span class="status status-bad">Mismatch found</span>{% else %}<span class="status status-warn">Checks incomplete</span>{% endif %}</a>
+      </div>
+      {% if scale %}
+      <svg class="budget-bar" viewBox="0 0 100 18" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <rect class="track" width="100" height="18"/>
+        {% if budget and total > budget %}<rect class="over" x="{{ '%.3f'|format(budget * 100 / scale) }}" width="{{ '%.3f'|format(100 - budget * 100 / scale) }}" height="18"/>{% endif %}
+        {% for category in ns.order %}{% set width = ns.sums[category] * 100 / scale %}
+        <rect class="seg {{ category_class(category) }}" x="{{ '%.3f'|format(ns.x) }}" width="{{ '%.3f'|format(width) }}" height="18"/>{% set ns.x = ns.x + width %}
+        {% endfor %}
+        {% if budget %}<line class="limit" x1="{{ '%.3f'|format(budget * 100 / scale) }}" x2="{{ '%.3f'|format(budget * 100 / scale) }}" y1="0" y2="18" vector-effect="non-scaling-stroke"/>{% endif %}
+      </svg>
+      <div class="bar-scale" aria-hidden="true"><span>€0</span><span>{% if budget and total <= budget %}Budget {{ money(budget) }}{% elif budget %}Total {{ money(total) }}, line marks the budget{% else %}Total {{ money(total) }}{% endif %}</span></div>
+      {% endif %}
+    </section>
+    <section class="panel summary-detail" aria-labelledby="compat-title">
+      {% if ns.order %}
+      <h2 class="legend-title">Cost by category</h2>
+      <ul class="legend">
+        {% for category in ns.order %}
+        <li><span class="tag {{ category_class(category) }}">{{ category }}</span><span class="money">{{ money(ns.sums[category]) }}</span></li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      <div class="compat">
+        <div class="panel-head">
+          <h2 id="compat-title" tabindex="-1">Compatibility</h2>
+          {% if compatibility_state == 'ok' %}<span class="status status-ok">Compatible</span>
+          {% elif compatibility_state == 'issue' %}<span class="status status-bad">Mismatch found</span>
+          {% else %}<span class="status status-warn">Incomplete</span>{% endif %}
+        </div>
+        <ul class="check-list">
+          {% for warning in warnings %}<li class="is-bad">{{ warning }}</li>{% endfor %}
+          {% if compatibility_status %}<li class="{{ 'is-ok' if compatibility_state == 'ok' else 'is-info' }}">{{ compatibility_status }}</li>{% endif %}
+        </ul>
+        <p class="scope-note">Compares CPU socket and RAM generation with the motherboard, using catalogue data. BIOS support, physical fit, cooling and power are not checked. Prices are demonstration values.</p>
+      </div>
+      <div class="summary-links">
+        <a class="btn btn-secondary btn-sm" href="/report">Open report</a>
+      </div>
+    </section>
+  </div>
+
+  <section class="add-part panel" id="add-component" aria-labelledby="add-title">
+    <div class="panel-head">
+      <h2 id="add-title">Add a component</h2>
+      <a href="/components">Browse the catalogue</a>
+    </div>
+    <form method="post" action="/builds/{{ build.id }}/items" class="add-form">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <div class="field field-select">
+        <label for="component">Choose from catalogue</label>
+        <select id="component" name="component_id" required aria-describedby="component-hint">
+          <option value="">Choose a part…</option>
+          {% for component in components %}
+            {% if loop.first or component.category != loop.previtem.category %}<optgroup label="{{ component.category }}">{% endif %}
+            {%- set specs = [component.socket, component.ram_type]|select|join(', ') -%}
+            {%- set taken = component.name in in_build -%}
+            {%- set blocked = not taken and component.category in single and component.category in used_categories -%}
+            <option value="{{ component.id }}"{% if taken or blocked %} disabled{% endif %}>{{ component.name }}{% if specs %} ({{ specs }}){% endif %}, {{ money(component.price_cents) }}{% if taken %}, already in build{% elif blocked %}, remove current {{ component.category }} first{% endif %}</option>
+            {% if loop.last or component.category != loop.nextitem.category %}</optgroup>{% endif %}
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit">Add component</button>
+      <p class="hint" id="component-hint">A build holds one CPU, one motherboard and one RAM kit. To replace one, remove it from the list first.</p>
+    </form>
+  </section>
+
+  <section class="parts panel" aria-labelledby="parts-title">
+    <div class="panel-head">
+      <h2 id="parts-title">Selected components</h2>
+      <p>{{ items|length }} {{ 'part' if items|length == 1 else 'parts' }}</p>
+    </div>
+    {% if items %}
+    <div class="table-wrap">
+      <table class="parts-table">
+        <caption class="visually-hidden">Components saved in this build</caption>
+        <thead><tr>
+          <th scope="col">Component</th>
+          <th scope="col">Quantity</th>
+          <th scope="col" class="num">Subtotal</th>
+          <th scope="col"><span class="visually-hidden">Remove</span></th>
+        </tr></thead>
+        <tbody>
+        {% for item in items %}
+        <tr>
+          <td>
+            <span class="tag {{ category_class(item.category) }}">{{ item.category }}</span>
+            <span class="cell-name part-name">{{ item.name }}</span>
+            {% if item.socket or item.ram_type %}<span class="specs">{% if item.socket %}<span class="spec" title="CPU socket">{{ item.socket }}</span>{% endif %}{% if item.ram_type %}<span class="spec" title="Memory generation">{{ item.ram_type }}</span>{% endif %}</span>{% endif %}
+          </td>
+          <td data-label="Quantity">
+            {% if item.category in ('CPU', 'Motherboard') %}
+              <span class="qty-fixed">{{ item.quantity }} <small>One per build</small></span>
+            {% else %}
+              <form class="quantity-form" method="post" action="/builds/{{ build.id }}/items/{{ item.id }}/quantity">
+                <input type="hidden" name="csrf" value="{{ csrf }}">
+                <label class="visually-hidden" for="quantity-{{ item.id }}">Quantity for {{ item.name }}</label>
+                <input id="quantity-{{ item.id }}" name="quantity" type="number" min="1" max="20" value="{{ item.quantity }}" inputmode="numeric" required>
+                <button class="btn-sm btn-secondary" type="submit">Update<span class="visually-hidden"> quantity for {{ item.name }}</span></button>
+              </form>
+            {% endif %}
+          </td>
+          <td class="num" data-label="Subtotal">
+            <span class="money">{{ money(item.price_cents * item.quantity) }}</span>
+            {% if item.quantity > 1 %}<span class="cell-sub money">{{ money(item.price_cents) }} each</span>{% endif %}
+          </td>
+          <td class="remove">
+            <details>
+              <summary>Remove<span class="visually-hidden"> {{ item.name }}</span></summary>
+              <form method="post" action="/builds/{{ build.id }}/items/{{ item.id }}/delete">
+                <input type="hidden" name="csrf" value="{{ csrf }}">
+                <button class="btn-sm btn-danger" type="submit" name="confirmed" value="yes">Confirm removal</button>
+              </form>
+            </details>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      {{ empty_icon() }}
+      <h3>No components selected yet</h3>
+      <p>Start with a CPU and a motherboard. Add RAM next so both compatibility checks can run.</p>
+      <a class="btn btn-secondary" href="#component">Choose a component</a>
+    </div>
+    {% endif %}
+  </section>
 </div>
 {% endblock %}

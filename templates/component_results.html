@@ -1,20 +1,25 @@
-<div class="table-wrap">
+{% from '_macros.html' import money, category_class %}
+{%- set admin = user.role == 'admin' -%}
+<div class="table-wrap" role="region" tabindex="0" aria-labelledby="results-caption">
 <table>
-  <caption>Search results ({{ components|length }})</caption>
+  <caption id="results-caption">Search results ({{ components|length }}){% if q or selected %} <span class="muted">for {% if q %}“{{ q }}”{% endif %}{% if q and selected %} in {% endif %}{% if selected %}{{ selected }}{% endif %}</span>{% endif %}</caption>
   <thead><tr>
-    <th scope="col">Category</th><th scope="col">Name</th><th scope="col">Price</th>
-    {% if user.role == 'admin' %}<th scope="col">Manage</th>{% endif %}
+    <th scope="col">Category</th><th scope="col">Name</th><th scope="col">Specs</th><th scope="col" class="num">Price</th>
+    {% if admin %}<th scope="col"><span class="visually-hidden">Manage</span></th>{% endif %}
   </tr></thead>
   <tbody>
     {% for component in components %}
     <tr>
-      <td>{{ component.category }}</td><td>{{ component.name }}</td><td>€{{ '%.2f'|format(component.price_cents / 100) }}</td>
-      {% if user.role == 'admin' %}
-      <td><a href="/components/{{ component.id }}/edit" aria-label="Edit {{ component.name }}">Edit</a>
-        <a href="/components/{{ component.id }}/delete" aria-label="Delete {{ component.name }}">Delete</a></td>
+      <td><span class="tag {{ category_class(component.category) }}">{{ component.category }}</span></td>
+      <td class="cell-name">{{ component.name }}</td>
+      <td>{% if component.socket or component.ram_type %}<span class="specs">{% if component.socket %}<span class="spec" title="CPU socket">{{ component.socket }}</span>{% endif %}{% if component.ram_type %}<span class="spec" title="Memory generation">{{ component.ram_type }}</span>{% endif %}</span>{% else %}<span class="muted" aria-hidden="true">–</span><span class="visually-hidden">None</span>{% endif %}</td>
+      <td class="num money">{{ money(component.price_cents) }}</td>
+      {% if admin %}
+      <td class="row-actions"><a class="btn btn-sm btn-quiet" href="/components/{{ component.id }}/edit" aria-label="Edit {{ component.name }}">Edit</a>
+        <a class="btn btn-sm btn-quiet btn-quiet-danger" href="/components/{{ component.id }}/delete" aria-label="Delete {{ component.name }}">Delete</a></td>
       {% endif %}
     </tr>
-    {% else %}<tr><td colspan="{{ 4 if user.role == 'admin' else 3 }}">No components found.</td></tr>{% endfor %}
+    {% else %}<tr><td class="empty-row" colspan="{{ 5 if admin else 4 }}"><strong>No components found.</strong>Try a shorter name or choose All categories. <a href="/components">Show the full catalogue</a></td></tr>{% endfor %}
   </tbody>
 </table>
 </div>

@@ -1,17 +1,39 @@
 {% extends 'base.html' %}
-{% block title %}Print report | PC Build Planner{% endblock %}
+{% from '_macros.html' import money %}
+{% block title %}Build report | PC Build Planner{% endblock %}
 {% block content %}
-<h1>My saved builds — report</h1>
-<p>Based on the latest data in the database.</p>
-<div class="actions no-print"><button type="button" data-print>Print report</button><a href="/report.csv">Export CSV</a></div>
-<div class="table-wrap">
+{%- set ns = namespace(over=0) -%}
+{%- for build in builds %}{% if build.budget_cents and build.total_cents > build.budget_cents %}{% set ns.over = ns.over + 1 %}{% endif %}{% endfor -%}
+<p class="print-only">PC Build Planner · report for {{ user.username }}</p>
+<div class="page-head">
+  <div>
+    <h1>My saved builds — report</h1>
+    <p class="lede">Current totals calculated from the latest catalogue prices in the database.</p>
+  </div>
+  <div class="page-actions no-print">
+    <button type="button" data-print>Print report</button>
+    <a class="btn btn-secondary" href="/report.csv" download>Export CSV</a>
+  </div>
+</div>
+{% if builds %}
+<p class="report-summary"><span><strong>{{ builds|length }}</strong> {{ 'build' if builds|length == 1 else 'builds' }}</span><span><strong>{{ ns.over }}</strong> over budget</span></p>
+{% endif %}
+<div class="table-wrap" role="region" tabindex="0" aria-labelledby="report-caption">
 <table>
-  <caption>Overview of builds</caption>
-  <thead><tr><th scope="col">Name</th><th scope="col">Created</th><th scope="col">Budget</th><th scope="col">Actual cost</th></tr></thead>
+  <caption id="report-caption">Overview of builds</caption>
+  <thead><tr><th scope="col">Name</th><th scope="col">Created</th><th scope="col" class="num">Budget</th><th scope="col" class="num">Actual cost</th><th scope="col">Budget status</th></tr></thead>
   <tbody>
-    {% for build in builds %}<tr><td>{{ build.title }}</td><td>{{ build.created_at }}</td><td>{% if build.budget_cents %}€{{ '%.2f'|format(build.budget_cents/100) }}{% else %}No limit{% endif %}</td><td>€{{ '%.2f'|format(build.total_cents/100) }}</td></tr>
-    {% else %}<tr><td colspan="4">No builds to report.</td></tr>{% endfor %}
+    {% for build in builds %}
+    <tr>
+      <td class="cell-name">{{ build.title }}</td>
+      <td class="date">{{ build.created_at }}</td>
+      <td class="num money">{% if build.budget_cents %}{{ money(build.budget_cents) }}{% else %}No limit{% endif %}</td>
+      <td class="num money"><strong>{{ money(build.total_cents) }}</strong></td>
+      <td>{% if not build.budget_cents %}<span class="status status-neutral">No limit</span>{% elif build.total_cents > build.budget_cents %}<span class="status status-bad">Over by {{ money(build.total_cents - build.budget_cents) }}</span>{% else %}<span class="status status-ok">Within budget</span>{% endif %}</td>
+    </tr>
+    {% else %}<tr><td class="empty-row" colspan="5"><strong>No builds to report.</strong><a href="/builds/new">Create a build</a> to see it here.</td></tr>{% endfor %}
   </tbody>
 </table>
 </div>
+<p class="hint table-note">Prices in the catalogue are demonstration values. The CSV export lists name, creation time and total in EUR.</p>
 {% endblock %}

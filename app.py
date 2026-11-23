@@ -15,7 +15,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
 from catalogue import INSERT_COMPONENT, MAX_CSV_BYTES, csv_rows, lookup
-from domain import COMPATIBILITY_CATEGORIES, RAM_TYPES, compatibility, component_values, money_cents, text_amount
+from domain import COMPATIBILITY_CATEGORIES, COMPATIBLE, RAM_TYPES, compatibility, component_values, money_cents, text_amount
 from config import PRODUCTION, ROOT, SESSION_SECONDS, SESSION_SECRET
 from db import connection, verify_password
 
@@ -255,14 +255,17 @@ def build_detail(request: Request, build_id: int):
             FROM build_items bi JOIN components c ON c.id = bi.component_id
             JOIN categories cat ON cat.id = c.category_id
             WHERE bi.build_id = ? ORDER BY cat.id""", (build_id,)).fetchall()
-        components = db.execute("""SELECT c.id, c.name, c.price_cents, cat.name AS category
+        components = db.execute("""SELECT c.id, c.name, c.price_cents, c.socket, c.ram_type, cat.name AS category
             FROM components c JOIN categories cat ON cat.id = c.category_id
             ORDER BY cat.id, c.name""").fetchall()
     total = sum(row["price_cents"] * row["quantity"] for row in items)
     warnings, status = compatibility(items)
+    # Summary badge for the interface: mismatch, all checks passed, or incomplete.
+    state = "issue" if warnings else ("ok" if status == COMPATIBLE else "incomplete")
     return page(
         request, "build_detail.html", build=build, items=items,
         components=components, total=total, warnings=warnings, compatibility_status=status,
+        compatibility_state=state,
     )
 
 

@@ -1,27 +1,47 @@
 {% extends 'base.html' %}
 {% block title %}Components | PC Build Planner{% endblock %}
 {% block content %}
-<h1>Component catalogue</h1>
-<p>Browse example parts and illustrative prices.</p>
-<form id="catalogue-filter" class="filters" method="get" action="/components">
-  <label for="q">Search name</label>
-  <input id="q" name="q" value="{{ q }}" placeholder="CPU, SSD…" maxlength="80">
-  <label for="category">Category</label>
-  <select id="category" name="category">
-    <option value="">All categories</option>
-    {% for cat in categories %}
-    <option value="{{ cat.name }}" {% if selected == cat.name %}selected{% endif %}>{{ cat.name }}</option>
-    {% endfor %}
-  </select>
-  <button type="submit">Search</button>
-</form>
-{% if user.role == 'admin' %}
-<div class="actions">
-  <a class="button" href="/components/new">Add component</a>
-  <a href="/components/import">Import CSV</a>
+<div class="page-head">
+  <div>
+    <h1>Component catalogue</h1>
+    <p class="lede">Search parts by name and narrow the list by category. Prices are demonstration values.</p>
+  </div>
+  {% if user.role == 'admin' %}
+  <div class="page-actions">
+    <a class="btn" href="/components/new">+ Add component</a>
+    <a class="btn btn-secondary" href="/components/import">Import CSV</a>
+  </div>
+  {% endif %}
 </div>
-{% endif %}
-<p id="catalogue-status" role="status"></p>
+<div class="search-panel">
+  <form id="catalogue-filter" class="search-bar" method="get" action="/components" role="search" aria-label="Catalogue">
+    <div class="field">
+      <label for="q">Name contains</label>
+      <div class="search-input">
+        <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="m13 13 4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="q" name="q" type="search" value="{{ q }}" placeholder="For example AM5, DDR5 or SSD" maxlength="80">
+      </div>
+    </div>
+    <div class="field">
+      <label for="category">Category</label>
+      <select id="category" name="category">
+        <option value="">All categories</option>
+        {% for cat in categories %}
+        <option value="{{ cat.name }}" {% if selected == cat.name %}selected{% endif %}>{{ cat.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit">Search</button>
+  </form>
+</div>
+<div class="search-meta">
+  <p id="catalogue-status" role="status"></p>
+  {% if user.role == 'admin' %}
+  <p class="admin-note">Administrator: edit or delete parts from the table. Parts used in a build cannot be deleted.</p>
+  {% else %}
+  <p class="admin-note">Add parts to a build from the build’s own page.</p>
+  {% endif %}
+</div>
 <section id="catalogue-results" aria-label="Catalogue search results">
   {% include 'component_results.html' %}
 </section>

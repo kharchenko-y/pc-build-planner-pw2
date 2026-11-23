@@ -20,6 +20,7 @@
 | Date | Contributor | Work completed | Evidence |
 |---|---|---|---|
 | 23 November 2026 | AI-assisted prototype and continued development | Supplied snapshot and further code, test and documentation changes | Starter snapshot and AI-authored local commits |
+| 23 November 2026 | AI-assisted interface redesign (Claude) | New templates, CSS design system, local font, favicon, two view-data changes in `app.py`/`domain.py`, one test, verification record | [07_interface_redesign.md](07_interface_redesign.md), [test results](test_results_redesign_2026-11-23.txt) |
 | To complete | Each student | Record real changes, reviews or test execution | Commit, pull request or test record |
 
 Enter checkpoint evidence only after it is presented or confirmed. Record feedback and outstanding items. Fill the approved team names and contact address in the submission.
