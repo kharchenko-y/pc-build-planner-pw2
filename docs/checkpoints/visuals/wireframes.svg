@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 707" role="img" aria-label="Wireframes · Main screens">
+<defs><marker id="arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 1 L11 6 L0 11" fill="none" stroke="#087a73" stroke-width="1.8"/></marker></defs>
+<rect width="1200" height="707" rx="26" fill="#f0f5f4"/>
+<text x="42" y="49" font-family="system-ui,sans-serif" font-size="32" font-weight="750" fill="#172f34" text-anchor="start">Wireframes · Main screens</text>
+<text x="42" y="79" font-family="system-ui,sans-serif" font-size="17" font-weight="450" fill="#3d5656" text-anchor="start">Structure from the Claude review candidate · live baseline uses the same principal workflows</text>
+<rect x="40" y="120" width="360" height="248" rx="12" fill="#fff" stroke="#b6cfcb"/>
+<text x="54" y="148" font-family="system-ui,sans-serif" font-size="18" font-weight="720" fill="#172f34" text-anchor="start">Public overview / sign-in</text>
+<rect x="53" y="163" width="334" height="31" rx="6" fill="#17464a" stroke="none"/>
+<text x="63" y="184" font-family="system-ui,sans-serif" font-size="14" font-weight="610" fill="#fff" text-anchor="start">Brand · Overview · Log in</text>
+<rect x="53" y="201" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="63" y="222" font-family="system-ui,sans-serif" font-size="14" font-weight="610" fill="#172f34" text-anchor="start">Plan a PC build</text>
+<rect x="53" y="239" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="63" y="260" font-family="system-ui,sans-serif" font-size="14" font-weight="450" fill="#172f34" text-anchor="start">Scope, steps and example</text>
+<rect x="53" y="277" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="63" y="298" font-family="system-ui,sans-serif" font-size="14" font-weight="450" fill="#172f34" text-anchor="start">[ Log in to try the demo ]</text>
+<rect x="53" y="315" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="63" y="336" font-family="system-ui,sans-serif" font-size="14" font-weight="450" fill="#172f34" text-anchor="start">Username · Password · Log in</text>
+<rect x="420" y="120" width="360" height="248" rx="12" fill="#fff" stroke="#b6cfcb"/>
+<text x="434" y="148" font-family="system-ui,sans-serif" font-size="18" font-weight="720" fill="#172f34" text-anchor="start">My builds</text>
+<rect x="433" y="163" width="334" height="31" rx="6" fill="#17464a" stroke="none"/>
+<text x="443" y="184" font-family="system-ui,sans-serif" font-size="14" font-weight="610" fill="#fff" text-anchor="start">Brand · My builds · Components · Report</text>
+<rect x="433" y="201" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="443" y="222" font-family="system-ui,sans-serif" font-size="14" font-weight="610" fill="#172f34" text-anchor="start">My saved builds · [ Create a build ]</text>
+<rect x="433" y="239" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="443" y="260" font-family="system-ui,sans-serif" font-size="14" font-weight="450" fill="#172f34" text-anchor="start">[ Cards ] [ List ]</text>
+<rect x="433" y="277" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="443" y="298" font-family="system-ui,sans-serif" font-size="14" font-weight="450" fill="#172f34" text-anchor="start">Saved build · total and budget</text>
+<rect x="433" y="315" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="443" y="336" font-family="system-ui,sans-serif" font-size="14" font-weight="450" fill="#172f34" text-anchor="start">Select a card to open detail</text>
+<rect x="800" y="120" width="360" height="248" rx="12" fill="#fff" stroke="#b6cfcb"/>
+<text x="814" y="148" font-family="system-ui,sans-serif" font-size="18" font-weight="720" fill="#172f34" text-anchor="start">Build detail · desktop</text>
+<rect x="813" y="163" width="334" height="31" rx="6" fill="#17464a" stroke="none"/>
+<text x="823" y="184" font-family="system-ui,sans-serif" font-size="14" font-weight="610" fill="#fff" text-anchor="start">Brand · My builds · Components · Report</text>
+<rect x="813" y="201" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="823" y="222" font-family="system-ui,sans-serif" font-size="14" font-weight="610" fill="#172f34" text-anchor="start">Build name · Edit · Delete</text>
+<rect x="813" y="239" width="334" height="31" rx="6" fill="#cdeae4" stroke="none"/>
+<text x="823" y="260" font-family="system-ui,sans-serif" font-size="14" font-weight="450" fill="#172f34" text-anchor="start">Part picker  |  Budget summary</text>
+<rect x="813" y="277" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="823" y="298" font-family="system-ui,sans-serif" font-size="14" font-weight="450" fill="#172f34" text-anchor="start">Selected parts  |  Status and category costs</text>
+<rect x="813" y="315" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="823" y="336" font-family="system-ui,sans-serif" font-size="14" font-weight="450" fill="#172f34" text-anchor="start">Save feedback · report shortcut</text>
+<rect x="40" y="411" width="360" height="248" rx="12" fill="#fff" stroke="#b6cfcb"/>
+<text x="54" y="439" font-family="system-ui,sans-serif" font-size="18" font-weight="720" fill="#172f34" text-anchor="start">Catalogue</text>
+<rect x="53" y="454" width="334" height="31" rx="6" fill="#17464a" stroke="none"/>
+<text x="63" y="475" font-family="system-ui,sans-serif" font-size="14" font-weight="610" fill="#fff" text-anchor="start">Brand · My builds · Components · Report</text>
+<rect x="53" y="492" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="63" y="513" font-family="system-ui,sans-serif" font-size="14" font-weight="610" fill="#172f34" text-anchor="start">Search name · Category · Search</text>
+<rect x="53" y="530" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="63" y="551" font-family="system-ui,sans-serif" font-size="14" font-weight="450" fill="#172f34" text-anchor="start">Result count · Table of parts</text>
+<rect x="53" y="568" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="63" y="589" font-family="system-ui,sans-serif" font-size="14" font-weight="450" fill="#172f34" text-anchor="start">Admin: Add · Import · Edit · Delete</text>
+<rect x="53" y="606" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="63" y="627" font-family="system-ui,sans-serif" font-size="14" font-weight="450" fill="#172f34" text-anchor="start">Fetch updates results only</text>
+<rect x="420" y="411" width="360" height="248" rx="12" fill="#fff" stroke="#b6cfcb"/>
+<text x="434" y="439" font-family="system-ui,sans-serif" font-size="18" font-weight="720" fill="#172f34" text-anchor="start">Report</text>
+<rect x="433" y="454" width="334" height="31" rx="6" fill="#17464a" stroke="none"/>
+<text x="443" y="475" font-family="system-ui,sans-serif" font-size="14" font-weight="610" fill="#fff" text-anchor="start">Brand · My builds · Components · Report</text>
+<rect x="433" y="492" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="443" y="513" font-family="system-ui,sans-serif" font-size="14" font-weight="610" fill="#172f34" text-anchor="start">Build report · [ Print ] [ CSV ]</text>
+<rect x="433" y="530" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="443" y="551" font-family="system-ui,sans-serif" font-size="14" font-weight="450" fill="#172f34" text-anchor="start">Owner’s builds · budgets · totals</text>
+<rect x="433" y="568" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="443" y="589" font-family="system-ui,sans-serif" font-size="14" font-weight="450" fill="#172f34" text-anchor="start">Current values from SQLite</text>
+<rect x="433" y="606" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="443" y="627" font-family="system-ui,sans-serif" font-size="14" font-weight="450" fill="#172f34" text-anchor="start">Print hides navigation and actions</text>
+<rect x="800" y="411" width="360" height="248" rx="12" fill="#fff" stroke="#b6cfcb"/>
+<text x="814" y="439" font-family="system-ui,sans-serif" font-size="18" font-weight="720" fill="#172f34" text-anchor="start">Build detail · mobile</text>
+<rect x="813" y="454" width="334" height="31" rx="6" fill="#17464a" stroke="none"/>
+<text x="823" y="475" font-family="system-ui,sans-serif" font-size="14" font-weight="610" fill="#fff" text-anchor="start">Brand · primary navigation</text>
+<rect x="813" y="492" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="823" y="513" font-family="system-ui,sans-serif" font-size="14" font-weight="610" fill="#172f34" text-anchor="start">Build name and actions</text>
+<rect x="813" y="530" width="334" height="31" rx="6" fill="#cdeae4" stroke="none"/>
+<text x="823" y="551" font-family="system-ui,sans-serif" font-size="14" font-weight="450" fill="#172f34" text-anchor="start">Summary and compatibility</text>
+<rect x="813" y="568" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="823" y="589" font-family="system-ui,sans-serif" font-size="14" font-weight="450" fill="#172f34" text-anchor="start">Picker → items → cost breakdown</text>
+<rect x="813" y="606" width="334" height="31" rx="6" fill="#f0f5f4" stroke="none"/>
+<text x="823" y="627" font-family="system-ui,sans-serif" font-size="14" font-weight="450" fill="#172f34" text-anchor="start">Stacked sections at narrow widths</text>
+</svg>

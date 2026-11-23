@@ -1,0 +1,19 @@
+PC Build Planner | PythonAnywhere classroom recheck | 23 November 2026
+Site: https://yarslv.pythonanywhere.com/
+Interface: hosted baseline, corresponding to GitHub main 8ac831a.
+Surface: browser, real HTTPS deployment.
+
+PASS Public overview and login form load.
+PASS User completed classroom sign-in; browser displayed classroom (student).
+PASS Created dedicated synthetic build “PW2 Checkpoint 3 Demo”, 800.00 EUR.
+PASS Added Demo CPU AM5 (190.00), Demo motherboard AM5 (130.00), 16 GB DDR5 demo kit (55.00).
+PASS After refresh, all three parts and total 375.00 EUR remained.
+PASS Interface reports that CPU socket and RAM generation match the motherboard.
+PASS Edited title to “PW2 Checkpoint 3 Demo - revised” and re-opened it.
+PASS Delete confirmation named only the demo build; selected Cancel and verified the build was preserved.
+PASS Report displayed the revised build and a 375.00 EUR total.
+PASS Catalogue filter AM5 + CPU returned one row, Demo CPU AM5.
+PASS Direct /components/new as classroom Student displayed the administrator-role refusal.
+
+Classroom demo retained: https://yarslv.pythonanywhere.com/builds/3 (Student session required).
+Actual deletion, Admin write permissions and other-owner access are covered by current local FastAPI tests on isolated SQLite files. No live record was deleted. This recheck used a Student session; Admin was not re-tested live. The Claude interface was not deployed during this checkpoint pass.

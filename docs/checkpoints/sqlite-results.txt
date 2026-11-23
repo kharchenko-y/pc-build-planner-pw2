@@ -1,0 +1,24 @@
+PRAGMA foreign_keys = 1 via application connection
+Domain: categories, components, builds, build_items
+Authentication: users, login_sessions
+users: PK id
+login_sessions: PK token_digest
+  FK user_id -> users.id ON DELETE CASCADE
+categories: PK id
+components: PK id
+  FK category_id -> categories.id ON DELETE RESTRICT
+builds: PK id
+  FK user_id -> users.id ON DELETE CASCADE
+build_items: PK id
+  FK component_id -> components.id ON DELETE RESTRICT
+  FK build_id -> builds.id ON DELETE CASCADE
+PASS orphan owner rejected: FOREIGN KEY constraint failed
+PASS orphan part rejected: FOREIGN KEY constraint failed
+PASS duplicate part rejected: UNIQUE constraint failed: build_items.build_id, build_items.component_id
+PASS invalid quantity rejected: CHECK constraint failed: quantity BETWEEN 1 AND 20
+PASS negative budget rejected: CHECK constraint failed: budget_cents >= 0
+PASS in-use part delete rejected: FOREIGN KEY constraint failed
+PASS rebuild of schema and seeds preserves existing build and catalogue
+PASS join calculates 19000 cents from the linked quantity and price
+PASS build delete cascades to its item and keeps the component
+PASS integrity_check = ok, foreign_key_check = 0 violations

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" role="img" aria-label="Request and data flow">
+<defs><marker id="arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 1 L11 6 L0 11" fill="none" stroke="#087a73" stroke-width="1.8"/></marker></defs>
+<rect width="1200" height="400" rx="26" fill="#f0f5f4"/>
+<text x="42" y="49" font-family="system-ui,sans-serif" font-size="32" font-weight="750" fill="#172f34" text-anchor="start">Request and data flow</text>
+<text x="42" y="79" font-family="system-ui,sans-serif" font-size="17" font-weight="450" fill="#3d5656" text-anchor="start">Example: create a build and navigate to its saved details</text>
+<rect x="40" y="129" width="244" height="135" rx="12" fill="#17464a" stroke="#17464a"/>
+<text x="57" y="157" font-family="system-ui,sans-serif" font-size="19" font-weight="710" fill="#fff" text-anchor="start">01 · Browser</text>
+<text x="57" y="182" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#d5eeeb" text-anchor="start">POST title, budget, CSRF</text>
+<text x="57" y="204" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#d5eeeb" text-anchor="start">Submit the HTML form</text>
+<text x="57" y="226" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#d5eeeb" text-anchor="start">Wait for redirect</text>
+<rect x="323" y="129" width="244" height="135" rx="12" fill="#fff" stroke="#b6cfcb"/>
+<text x="340" y="157" font-family="system-ui,sans-serif" font-size="19" font-weight="710" fill="#172f34" text-anchor="start">02 · FastAPI</text>
+<text x="340" y="182" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#3d5656" text-anchor="start">Resolve signed-in user</text>
+<text x="340" y="204" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#3d5656" text-anchor="start">Validate token and data</text>
+<text x="340" y="226" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#3d5656" text-anchor="start">Bind owner and values</text>
+<rect x="606" y="129" width="244" height="135" rx="12" fill="#fff" stroke="#b6cfcb"/>
+<text x="623" y="157" font-family="system-ui,sans-serif" font-size="19" font-weight="710" fill="#172f34" text-anchor="start">03 · SQLite</text>
+<text x="623" y="182" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#3d5656" text-anchor="start">Enable foreign keys</text>
+<text x="623" y="204" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#3d5656" text-anchor="start">Insert in a transaction</text>
+<text x="623" y="226" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#3d5656" text-anchor="start">Commit and return new ID</text>
+<rect x="889" y="129" width="270" height="135" rx="12" fill="#17464a" stroke="#17464a"/>
+<text x="906" y="157" font-family="system-ui,sans-serif" font-size="19" font-weight="710" fill="#fff" text-anchor="start">04 · HTML response</text>
+<text x="906" y="182" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#d5eeeb" text-anchor="start">Send 303 to build detail</text>
+<text x="906" y="204" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#d5eeeb" text-anchor="start">GET re-reads owned data</text>
+<text x="906" y="226" font-family="system-ui,sans-serif" font-size="15" font-weight="450" fill="#d5eeeb" text-anchor="start">Jinja renders the saved build</text>
+<path d="M284 194 H323" fill="none" stroke="#087a73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<path d="M567 194 H606" fill="none" stroke="#087a73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<path d="M850 194 H889" fill="none" stroke="#087a73" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="40" y="332" font-family="system-ui,sans-serif" font-size="18" font-weight="650" fill="#172f34" text-anchor="start">Deployment: HTTPS browser → PythonAnywhere WSGI worker → a2wsgi → FastAPI → SQLite</text>
+<text x="40" y="362" font-family="system-ui,sans-serif" font-size="16" font-weight="450" fill="#172f34" text-anchor="start">Refresh repeats the GET after saving. Build access is scoped to the current user’s ID.</text>
+</svg>

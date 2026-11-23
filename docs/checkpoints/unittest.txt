@@ -1,0 +1,14 @@
+test_csv_transaction_rolls_back_on_conflict (test_domain.DatabaseTests.test_csv_transaction_rolls_back_on_conflict) ... ok
+test_foreign_key_restrict_and_cascade (test_domain.DatabaseTests.test_foreign_key_restrict_and_cascade) ... ok
+test_password_hash_is_salted_and_verifiable (test_domain.DatabaseTests.test_password_hash_is_salted_and_verifiable) ... ok
+test_seed_and_restart (test_domain.DatabaseTests.test_seed_and_restart) ... ok
+test_two_criteria_search_and_literal_wildcards (test_domain.DatabaseTests.test_two_criteria_search_and_literal_wildcards) ... ok
+test_amounts_are_stored_as_cents (test_domain.DomainTests.test_amounts_are_stored_as_cents) ... ok
+test_category_specific_specs (test_domain.DomainTests.test_category_specific_specs) ... ok
+test_csv_input_validation (test_domain.DomainTests.test_csv_input_validation) ... ok
+test_incompatible_socket_and_memory (test_domain.DomainTests.test_incompatible_socket_and_memory) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 2.244s
+
+OK

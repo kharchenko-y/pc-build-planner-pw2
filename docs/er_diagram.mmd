@@ -1,43 +1,43 @@
 erDiagram
-    USERS ||--o{ BUILDS : owns
-    USERS ||--o{ LOGIN_SESSIONS : authenticates
-    CATEGORIES ||--o{ COMPONENTS : groups
-    BUILDS ||--o{ BUILD_ITEMS : contains
-    COMPONENTS ||--o{ BUILD_ITEMS : selected_in
+    USERS ||--o{ BUILDS : "owns (cascade)"
+    USERS ||--o{ LOGIN_SESSIONS : "has (cascade)"
+    CATEGORIES ||--o{ COMPONENTS : "groups (restrict)"
+    BUILDS ||--o{ BUILD_ITEMS : "contains (cascade)"
+    COMPONENTS ||--o{ BUILD_ITEMS : "selected in (restrict)"
 
     USERS {
-        int id PK
-        string username UK
-        string password_hash
-        string role
+        INTEGER id PK
+        TEXT username UK "required"
+        TEXT password_hash "required"
+        TEXT role "student or admin"
     }
     LOGIN_SESSIONS {
-        string token_digest PK
-        int user_id FK
-        int expires_at
+        TEXT token_digest PK
+        INTEGER user_id FK "required"
+        INTEGER expires_at "Unix seconds"
     }
     CATEGORIES {
-        int id PK
-        string name UK
+        INTEGER id PK
+        TEXT name UK "required"
     }
     COMPONENTS {
-        int id PK
-        int category_id FK
-        string name UK
-        int price_cents
-        string socket
-        string ram_type
+        INTEGER id PK
+        INTEGER category_id FK "required"
+        TEXT name UK "required"
+        INTEGER price_cents "required; >= 0"
+        TEXT socket "optional"
+        TEXT ram_type "optional"
     }
     BUILDS {
-        int id PK
-        int user_id FK
-        string title
-        int budget_cents
-        datetime created_at
+        INTEGER id PK
+        INTEGER user_id FK "required"
+        TEXT title "required"
+        INTEGER budget_cents ">= 0; default 0"
+        TEXT created_at "default CURRENT_TIMESTAMP"
     }
     BUILD_ITEMS {
-        int id PK
-        int build_id FK
-        int component_id FK
-        int quantity
+        INTEGER id PK
+        INTEGER build_id FK "required; part of unique pair"
+        INTEGER component_id FK "required; part of unique pair"
+        INTEGER quantity "1 to 20; default 1"
     }
