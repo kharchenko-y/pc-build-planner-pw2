@@ -65,7 +65,7 @@ def test_build_update_delete_and_xss_escaping(client):
     result = client.post(f"/builds/{build_id}/edit", data={"title": "Renamed build", "csrf": csrf(client, f"/builds/{build_id}/edit")}, follow_redirects=False)
     assert result.status_code == 303
     assert "Renamed build" in client.get(f"/builds/{build_id}").text
-    result = client.post(f"/builds/{build_id}/delete", data={"csrf": csrf(client, f"/builds/{build_id}")}, follow_redirects=False)
+    result = client.post(f"/builds/{build_id}/delete", data={"confirmed": "yes", "csrf": csrf(client, f"/builds/{build_id}")}, follow_redirects=False)
     assert result.status_code == 303
     assert client.get(f"/builds/{build_id}").status_code == 404
 
@@ -86,7 +86,7 @@ def test_role_blocks_admin_only(client):
 
 def test_admin_can_add_component(client):
     login(client, "admin")
-    result = client.post("/components/new", data={"category_id": 1, "name": "Test processor", "price": "9.95", "csrf": csrf(client, "/components/new")}, follow_redirects=False)
+    result = client.post("/components/new", data={"category_id": 1, "name": "Test processor", "price": "9.95", "socket": "AM5", "csrf": csrf(client, "/components/new")}, follow_redirects=False)
     assert result.status_code == 303
     page = client.get("/components?category=CPU&q=Test")
     assert "Test processor" in page.text and "€9.95" in page.text
@@ -132,3 +132,65 @@ def test_duplicate_component_is_rejected(client):
     second = client.post(endpoint,data={'component_id':1,'csrf':csrf(client,f'/builds/{build_id}')})
     assert second.status_code == 400
     assert 'already in the build' in second.text
+
+def test_view_cookie_requires_csrf_and_survives_logout(client):
+    login(client)
+    new_build(client)
+    response = client.post("/preferences/build-view", data={"view": "list", "csrf": csrf(client, "/")})
+    assert response.status_code == 200
+    assert 'class="build-list"' in response.text
+    assert client.cookies.get("pcbuild_view") == "list"
+    client.post("/logout", data={"csrf": csrf(client, "/")})
+    assert client.cookies.get("pcbuild_view") == "list"
+
+
+def test_delete_requires_explicit_confirmation(client):
+    login(client)
+    build_id = new_build(client)
+    url = f"/builds/{build_id}/delete"
+    token = csrf(client, url)
+    assert client.post(url, data={"csrf": token}).status_code == 422
+    assert client.get(f"/builds/{build_id}").status_code == 200
+    assert client.post(url, data={"csrf": token, "confirmed": "yes"}, follow_redirects=False).status_code == 303
+
+
+def test_component_fragment_and_permission(client):
+    assert client.get("/components/results?q=AM5&category=CPU").status_code == 401
+    login(client)
+    response = client.get("/components/results?q=AM5&category=CPU")
+    assert response.status_code == 200
+    assert "Demo CPU AM5" in response.text
+    assert "motherboard" not in response.text
+    assert client.get("/components/import").status_code == 403
+    assert client.get("/components/1/edit").status_code == 403
+
+
+def test_import_update_delete_component(client):
+    login(client, "admin")
+    data = b"category,name,price_eur,socket,ram_type\nStorage,Lab SSD,29.95,,\n"
+    response = client.post(
+        "/components/import",
+        files={"upload": ("sample.csv", data, "text/csv")},
+        data={"csrf": csrf(client, "/components/import")},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    document = BeautifulSoup(client.get("/components?q=Lab%20SSD&category=Storage").text, "html.parser")
+    edit = document.select_one('a[aria-label="Edit Lab SSD"]')["href"]
+    delete = edit.removesuffix("edit") + "delete"
+    form = BeautifulSoup(client.get(edit).text, "html.parser")
+    category_id = form.select_one("#category_id option[selected]")["value"]
+    patch = {"name": "Updated Lab SSD", "price": "34.99", "category_id": category_id, "csrf": csrf(client, edit)}
+    assert client.post(edit, data=patch, follow_redirects=False).status_code == 303
+    assert "Updated Lab SSD" in client.get("/components").text
+    assert client.post(delete, data={"confirmed": "yes", "csrf": csrf(client, delete)}, follow_redirects=False).status_code == 303
+    assert "Updated Lab SSD" not in client.get("/components").text
+
+
+def test_logout_revokes_previously_issued_session(client):
+    login(client)
+    cookie = client.cookies.get("pcbuild_session")
+    client.post("/logout", data={"csrf": csrf(client, "/")})
+    client.cookies.clear()
+    client.cookies.set("pcbuild_session", cookie)
+    assert client.get("/builds/new").status_code == 401

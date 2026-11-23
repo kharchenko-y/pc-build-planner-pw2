@@ -2,10 +2,10 @@
 {% block title %}Components | PC Build Planner{% endblock %}
 {% block content %}
 <h1>Component catalogue</h1>
-<p>Example components and illustrative prices for local testing.</p>
-<form class="filters" method="get">
+<p>Browse example parts and illustrative prices.</p>
+<form id="catalogue-filter" class="filters" method="get" action="/components">
   <label for="q">Search name</label>
-  <input id="q" name="q" value="{{ q }}" placeholder="CPU, SSD...">
+  <input id="q" name="q" value="{{ q }}" placeholder="CPU, SSD…" maxlength="80">
   <label for="category">Category</label>
   <select id="category" name="category">
     <option value="">All categories</option>
@@ -15,14 +15,14 @@
   </select>
   <button type="submit">Search</button>
 </form>
-{% if user.role == 'admin' %}<p><a class="button" href="/components/new">+ Add component (admin)</a></p>{% endif %}
-<table>
-  <caption>Search results</caption>
-  <thead><tr><th scope="col">Category</th><th scope="col">Name</th><th scope="col">Price</th></tr></thead>
-  <tbody>
-    {% for component in components %}
-    <tr><td>{{ component.category }}</td><td>{{ component.name }}</td><td>€{{ '%.2f'|format(component.price_cents / 100) }}</td></tr>
-    {% else %}<tr><td colspan="3">No components found.</td></tr>{% endfor %}
-  </tbody>
-</table>
+{% if user.role == 'admin' %}
+<div class="actions">
+  <a class="button" href="/components/new">Add component</a>
+  <a href="/components/import">Import CSV</a>
+</div>
+{% endif %}
+<p id="catalogue-status" role="status"></p>
+<section id="catalogue-results" aria-label="Catalogue search results">
+  {% include 'component_results.html' %}
+</section>
 {% endblock %}

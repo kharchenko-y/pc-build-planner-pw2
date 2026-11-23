@@ -4,12 +4,14 @@
 <h1>My saved builds — report</h1>
 <p>Based on the latest data in the database.</p>
 <div class="actions no-print"><button type="button" data-print>Print report</button><a href="/report.csv">Export CSV</a></div>
+<div class="table-wrap">
 <table>
   <caption>Overview of builds</caption>
   <thead><tr><th scope="col">Name</th><th scope="col">Created</th><th scope="col">Budget</th><th scope="col">Actual cost</th></tr></thead>
   <tbody>
-    {% for build in builds %}<tr><td>{{ build.title }}</td><td>{{ build.created_at }}</td><td>€{{ '%.2f'|format(build.budget_cents/100) }}</td><td>€{{ '%.2f'|format(build.total_cents/100) }}</td></tr>
+    {% for build in builds %}<tr><td>{{ build.title }}</td><td>{{ build.created_at }}</td><td>{% if build.budget_cents %}€{{ '%.2f'|format(build.budget_cents/100) }}{% else %}No limit{% endif %}</td><td>€{{ '%.2f'|format(build.total_cents/100) }}</td></tr>
     {% else %}<tr><td colspan="4">No builds to report.</td></tr>{% endfor %}
   </tbody>
 </table>
+</div>
 {% endblock %}

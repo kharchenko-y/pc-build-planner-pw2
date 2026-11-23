@@ -14,13 +14,22 @@
 {% if user %}
 <section>
   <h2>My saved builds</h2>
+  <form class="view-options" method="post" action="/preferences/build-view">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <label for="view">Build view</label>
+    <select id="view" name="view">
+      <option value="cards" {% if view == 'cards' %}selected{% endif %}>Cards</option>
+      <option value="list" {% if view == 'list' %}selected{% endif %}>List</option>
+    </select>
+    <button class="small secondary" type="submit">Save view</button>
+  </form>
   {% if builds %}
-    <div class="cards">
+    <div class="{{ 'cards' if view == 'cards' else 'build-list' }}">
     {% for build in builds %}
       <article class="card">
         <h3><a href="/builds/{{ build.id }}">{{ build.title }}</a></h3>
         <p>Current cost: <strong>€{{ '%.2f'|format(build.total_cents / 100) }}</strong></p>
-        <p>Budget: €{{ '%.2f'|format(build.budget_cents / 100) }}</p>
+        <p>Budget: {% if build.budget_cents %}€{{ '%.2f'|format(build.budget_cents / 100) }}{% else %}No limit{% endif %}</p>
       </article>
     {% endfor %}
     </div>

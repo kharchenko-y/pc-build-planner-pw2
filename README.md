@@ -1,92 +1,56 @@
-# PC Build Planner — PW2 prototype
+# PC Build Planner
 
-**Status: work in progress, not a final submission.** Prepared as a starting point for the team's implementation and discussion with the lecturer.
+A Vilnius University Practical Work II application for saving desktop PC configurations and comparing their cost against a budget. Catalogue administrators maintain the parts list. Prices and parts in the seed catalogue are illustrative.
 
-## Purpose
+## Run locally
 
-A small web application for people planning a desktop PC. Users create builds, choose components from a catalogue, and see a price total based on database records. Administrators can add catalogue components.
-
-## Stack
-
-- Python 3.11+ / FastAPI / Jinja2 (server-rendered HTML)
-- SQLite relational database
-- Plain CSS, small browser JavaScript for print and delete confirmation
-- No external product APIs, paid services or frontend framework
-
-## Local setup (Windows)
-
-Open the project directory in PowerShell:
+Use Python 3.11 or newer. From the extracted project directory in PowerShell:
 
 ```powershell
 py -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-python setup_db.py
-python -m uvicorn app:app --reload
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe setup_db.py
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m uvicorn app:app --host 127.0.0.1 --port 8000
 ```
 
-Open **http://127.0.0.1:8000**. Do not open an HTML template as a local file — the database app needs a Python server.
+Open http://127.0.0.1:8000. The local seed accounts are `student` and `admin`, both with password `demo12345`. In production, the bootstrap command creates separate accounts with random passwords; the application rejects a database containing the original default accounts during initialization.
 
-Local demonstration accounts (not for public deployment):
+## Features
 
-- `student` / `demo12345`
-- `admin` / `demo12345`
+- Students create, open, edit and delete their own builds. They choose parts by name and update quantities for applicable parts.
+- The catalogue combines a name search with a category filter. The search uses Fetch when JavaScript is available. The regular form works without JavaScript.
+- Administrators can create, edit, delete and import catalogue parts. A component used in a build cannot be deleted. Category names are fixed reference data for the compatibility rules.
+- Build totals are calculated from the current catalogue price in integer cents multiplied by quantities. Saved builds reflect changes to catalogue prices.
+- Compatibility checks compare CPU socket and RAM generation to the motherboard. The display calls out missing data or mismatches. It does not check BIOS, physical clearance, cooling, power supply, or other hardware requirements.
+- Users can print a current report and download a CSV. The administrator CSV importer checks headers, UTF-8, row count and file size. The import commits all rows together.
+- A 30-day `pcbuild_view` cookie stores the user's Cards or List preference.
 
-The `admin` account can add catalogue components; student cannot. Both can create and manage their own builds. Change all demo credentials and `SESSION_SECRET` before any public hosting.
+## Architecture and security
 
-## Test a complete workflow
+| File | Responsibility |
+|---|---|
+| `app.py` | FastAPI routes, server-rendered views, validation and access checks |
+| `config.py` | Runtime environment rules |
+| `db.py` and `database/schema.sql` | SQLite connections, password hashes, schema and seeds |
+| `domain.py` and `catalogue.py` | Money and compatibility rules, search and CSV import |
+| `templates/` and `static/` | English HTML, CSS and browser interactions |
+| `tests/` | Python/SQLite checks and HTTP integration tests |
 
-1. Log in as `student`.
-2. Select **Create a build**, enter `My first PC`, budget `900`, and save.
-3. In the detail page, add `Demo CPU AM5` and `Demo motherboard AM5`.
-4. Check that the total increases by the sum of their prices.
-5. Edit the build name, remove an item, and optionally delete the build.
-6. Open **Components** and try filtering by name and category.
-7. Open **Report** and use Print or Download CSV.
-8. Log in as `admin` to see the additional Add component page.
+SQL statements bind input values. Jinja escapes HTML text. Forms use CSRF tokens, logout invalidates the server-side session, and production cookies are Secure, HttpOnly and SameSite=Lax. Server-side login records expire after two hours. Build access is scoped to the owner, and catalogue writes require the admin role. Public use is intended for a small classroom demonstration with synthetic data. Accounts are provisioned by the operator; the lecturer must approve this workflow for the final submission.
 
-## Files
+## Deployment
 
-- `app.py`: request handlers / routes
-- `db.py`: SQLite connection and password hashing helpers
-- `database/schema.sql`: tables and constraints
-- `setup_db.py`: initializes the local database and demo records
-- `templates/`: HTML generated on the server
-- `static/styles.css`: styling and responsiveness
-- `docs/`: requirements, ER diagram, backlog and lesson walkthrough
-- `tests/`: automated checks for the starter
+Follow [the PythonAnywhere guide](deploy/README.md) for free HTTPS hosting using `a2wsgi` and persistent SQLite. Keep credentials, runtime configuration and the database outside static directories and source control. The web app must run in production mode on the host.
 
-## Current features
+## Test commands and materials
 
-- Login/logout with PBKDF2 password hashing and signed session cookie
-- Separate student/admin roles for catalogue modifications
-- Own-build access checks, CSRF form tokens, SQL parameters
-- Complete create/read/update/delete workflow for saved builds
-- Add/remove saved components; calculation of the total cost
-- Search and category filter using joined database tables
-- Print-friendly and CSV reports
-- Responsive layout and form labels
+- `python -m pytest -q` runs all tests with development dependencies installed.
+- `python -m unittest discover -s tests -p test_domain.py -v` runs Python/SQLite tests without external test dependencies.
+- [Checkpoint script](docs/03_tomorrow_checkpoint.md), [learning guide in Russian](docs/04_learning_guide_RU.md), [test matrix](docs/06_test_matrix.md), [ER diagram](docs/er_diagram.mmd).
 
-## Not yet complete for the PW2 rubric
+## Dependencies and attribution
 
-- User sign-up or lecturer-approved account provisioning (demo accounts only)
-- Complete catalogue/category CRUD, editing all build fields, more polished UI states
-- Actual CPU/motherboard/RAM compatibility rules (not implemented)
-- Documented non-sensitive preference cookie and its lifetime
-- Required asynchronous/file-processing scope — must be clarified and implemented
-- Broader security tests and deployment hardening (HTTPS, secure cookies, session lifecycle)
-- Testing matrix, documentation, contribution logs, presentation/video and final report
-- Both students must review, modify, test and explain this code and contribute through Git
+Python 3.11+, SQLite from Python, FastAPI, Uvicorn, Jinja2, python-multipart, itsdangerous and a2wsgi. Development dependencies are pytest, HTTPX and Beautiful Soup. Supported dependency ranges are listed in the requirements files. The HTML, CSS, seed data and diagrams are project materials. They use no external media.
 
-**Demo data warning:** the prices and products in `setup_db.py` are synthetic, not live retail information. Totals are not shopping recommendations.
-
-## Academic process
-
-The assignment requires approval of project topic/stack, five progress checkpoints, evidence of both members' contributions, and disclosure of material AI assistance. Agree on how to document assistance with the lecturer. Do not claim a generated prototype was independently authored by both students.
-
-## Checks of this starter snapshot
-
-- 10 automated pytest checks passed in the preparation environment on 23 November 2026.
-- Server returned HTTP 200 for the public home page; HTML/CSS screenshots were rendered separately for visual review.
-- Browser-based end-to-end testing in your own Chrome/Edge, along with full security testing, is still required.
-- Quick test command: `python -m pytest -q tests` (install `pytest`, `httpx` and `beautifulsoup4` for the developer test environment).
+Material AI assistance was used for the initial prototype, code changes and documentation. The team must review, test and explain each submitted feature. The project registration must carry both students’ actual names. Record each person's completed contribution and corresponding commits in [the contribution log](docs/05_backlog.md). Add the approved team credit and contact email before final submission.

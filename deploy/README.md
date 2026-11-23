@@ -20,7 +20,6 @@ python deploy/bootstrap.py
 
 4. In the **Web** tab, set the virtualenv to `/home/YOUR_USER/.virtualenvs/pcbuild-pw2`. Replace the WSGI configuration contents with `deploy/pythonanywhere_wsgi.py`. Enable **Force HTTPS** and reload.
 5. Open the HTTPS URL shown in **Web**. The separate student and administrator credentials are in `~/.pcbuild-pw2/classroom.txt` and `~/.pcbuild-pw2/classroom-admin.txt` in the hosting dashboard. Use the student credential for a classroom demonstration. Keep the administrator credential and runtime configuration private.
-6. Verify the main workflow. Create a sample build, add Demo CPU AM5 and the AM5 motherboard, confirm €320.00, edit the build, filter CPU by AM5, open the report and verify logout. Reload the web worker and log in again to confirm that the build persists.
+6. Verify the main workflow. Create a sample build, add Demo CPU AM5 and the AM5 motherboard, then the 16 GB DDR5 demo kit. Confirm €375.00 and the compatibility result. Edit the build, filter CPU by AM5, open the report and verify logout. Reload the web worker and log in again to confirm that the build persists.
 
 A Beginner web app has a one-month expiry. Check the date shown in Web before the assessment. No GitHub checkout or database connection string is needed to run this package. Keep `~/.pcbuild-pw2` outside all web/static directories. Never copy that directory into source control or a submission ZIP.
-

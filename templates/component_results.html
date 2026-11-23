@@ -1,0 +1,20 @@
+<div class="table-wrap">
+<table>
+  <caption>Search results ({{ components|length }})</caption>
+  <thead><tr>
+    <th scope="col">Category</th><th scope="col">Name</th><th scope="col">Price</th>
+    {% if user.role == 'admin' %}<th scope="col">Manage</th>{% endif %}
+  </tr></thead>
+  <tbody>
+    {% for component in components %}
+    <tr>
+      <td>{{ component.category }}</td><td>{{ component.name }}</td><td>€{{ '%.2f'|format(component.price_cents / 100) }}</td>
+      {% if user.role == 'admin' %}
+      <td><a href="/components/{{ component.id }}/edit" aria-label="Edit {{ component.name }}">Edit</a>
+        <a href="/components/{{ component.id }}/delete" aria-label="Delete {{ component.name }}">Delete</a></td>
+      {% endif %}
+    </tr>
+    {% else %}<tr><td colspan="{{ 4 if user.role == 'admin' else 3 }}">No components found.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div>

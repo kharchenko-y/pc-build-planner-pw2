@@ -1,5 +1,6 @@
 erDiagram
     USERS ||--o{ BUILDS : owns
+    USERS ||--o{ LOGIN_SESSIONS : authenticates
     CATEGORIES ||--o{ COMPONENTS : groups
     BUILDS ||--o{ BUILD_ITEMS : contains
     COMPONENTS ||--o{ BUILD_ITEMS : selected_in
@@ -9,6 +10,11 @@ erDiagram
         string username UK
         string password_hash
         string role
+    }
+    LOGIN_SESSIONS {
+        string token_digest PK
+        int user_id FK
+        int expires_at
     }
     CATEGORIES {
         int id PK

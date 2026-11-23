@@ -55,10 +55,11 @@ def init_database():
             for row in db.execute("SELECT username, password_hash FROM users"):
                 if row["username"] in {"student", "admin"} and verify_password(LOCAL_PASSWORD, row["password_hash"]):
                     raise RuntimeError("Use a fresh database or remove local demo accounts before deployment.")
-        if db.execute("SELECT COUNT(*) FROM categories").fetchone()[0] == 0:
+        new_catalogue = db.execute("SELECT COUNT(*) FROM categories").fetchone()[0] == 0
+        if new_catalogue:
             categories = ["CPU", "Motherboard", "RAM", "GPU", "Storage", "PSU", "Case"]
             db.executemany("INSERT INTO categories (name) VALUES (?)", [(x,) for x in categories])
-        if db.execute("SELECT COUNT(*) FROM components").fetchone()[0] == 0:
+        if new_catalogue:
             sample = [
                 ("CPU", "Demo CPU AM5", 19000, "AM5", None),
                 ("CPU", "Demo CPU LGA1700", 17500, "LGA1700", None),

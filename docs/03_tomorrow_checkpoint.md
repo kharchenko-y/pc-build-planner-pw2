@@ -1,57 +1,49 @@
-# Tuesday, 24 November 2026 — short PW2 progress update
+# PC Build Planner Progress Demonstration
 
-## Important
+24 November 2026 · Vilnius University · WWW Development Technologies · Practical Work II
 
-This material shows **work actually present in the starter**. Do not claim that both members wrote it or that the project is complete. The lecturer determines which checkpoint is due. Since 24 November may fall in the 13th teaching week, they may expect integrated features already. Two previous updates may have been missed; ask how to document those honestly.
+## Browser route
 
-## What to show in 2–4 minutes
+Use the verified HTTPS URL if the deployment is complete. Sign in with the separately provisioned student account. Use a private browser window on the university PC, do not save the password and sign out when finished. Open this script, the ER diagram and the starter screenshots in advance. If the live site is unavailable, show the starter screenshots and label them as earlier local captures.
 
-1. **Problem & scope**: desktop PC build planning with saved parts and budgets.
-2. **Users / workflows**: Student creates a build; Admin maintains components.
-3. **ER diagram**: open `docs/er_diagram.mmd` (or `database/schema.sql`), explain 5 tables and foreign keys.
-4. **Running demo**: login as `student`, create a build, add CPU and motherboard, show total.
-5. **SQL & security**: open `app.py`, show `create_build()` and parameterized SQL, CSRF check, owner check.
-6. **Progress / next steps**: plan actual teammate responsibilities, complete catalogue CRUD, compatibility, security, testing.
+1. **0:00–0:35** Open the landing page, log in and introduce the two workflows.
+2. **0:35–1:30** Create `Campus PC` with an €800 budget. Add **Demo CPU AM5**, **Demo motherboard AM5**, then **16 GB DDR5 demo kit**. Point at the total of **€375.00**. Refresh to demonstrate the saved build.
+3. **1:30–2:15** Edit the name to `Campus PC revised` and save. Open **Components**, filter **AM5** in **CPU**, then open **Report**. Open print preview and cancel it. If time permits, delete the demo build through the confirmation screen.
+4. **2:15–3:15** Show the diagram and explain the request path and ownership. State the status of deployment, testing, AI assistance and team contributions accurately.
 
-## Speaking notes (simple English)
+## Speaking script
 
-> We chose PC Build Planner, a web application for planning computer configurations. The main problem is that beginners need a place to save their parts and calculate the cost. Our first workflow is to create a build and add components. The second is managing the component catalogue with an admin role.
+> Our working title is PC Build Planner. A beginner can save a desktop PC configuration, choose parts from a catalogue and see its cost in one place. A catalogue administrator maintains the catalogue. Both roles can manage their own builds.
 >
-> We designed a relational database with users, categories, components, builds and build items. One user can own many builds, and one build can contain many items. Build items connect builds to components.
+> I will create a build called Campus PC with an 800-euro budget. I will add an AM5 processor, an AM5 motherboard and a DDR5 memory kit. The total is 375 euros. Each catalogue price is stored as a whole number of cents. The server multiplies prices by quantities and adds the results. When I refresh, the items stay because they were written to the SQLite database.
 >
-> This is an early working prototype. It uses Python, FastAPI and SQLite. I can log in, create a build, add a component and show the calculated price. The server reads and writes the database. We have also started using parameterized queries, password hashing, access checks and CSRF tokens.
+> I can change the name and save it. The catalogue filter uses the part name and its category. Those values come from two related tables. The report reads the saved builds and produces a printable summary.
 >
-> The system is not finished. Next, we will complete component management, add compatibility checks, test security, and improve the frontend. We will also document the contributions of both team members in Git.
+> This diagram shows the main relationships. A user can own many builds, and a build can contain many items. A build item points to a catalogue component. A foreign key links the records, and SQLite prevents a referenced catalogue component from being deleted. The server checks who is signed in and whether the build belongs to that user. Form submissions also require a CSRF token.
+>
+> This is a progress demonstration. We used material AI assistance in building and documenting the prototype. We still need to review the implementation as a pair, document our individual contributions and complete the release checks.
 
-Adapt pronouns and attribution to what has actually been performed by each teammate; don't claim joint coding if it hasn't occurred.
+If the latest build is verified in the browser, add this line after the parts are selected:
 
-## Likely questions (answer in one sentence)
+> The application also compares the CPU socket and memory generation with the motherboard. These are the two compatibility rules in this version.
 
-**Why a database?** The builds and components need to remain saved after the browser is closed.
+If the live app is unavailable, replace the action narration with this opening:
 
-**Why five tables?** Users own builds, categories group components, and build_items connects a build to its parts.
+> I can show the project structure and screenshots of the earlier local prototype today. The publicly hosted application is still awaiting verification, so the screenshots are evidence of the earlier local workflow.
 
-**What is CRUD?** Create, Read, Update and Delete operations on database records.
+## Likely questions
 
-**Where is the calculation?** We sum price_cents multiplied by quantity for the items in the build.
+| Question | Short answer |
+|---|---|
+| What is a foreign key? | It links a value in one table to a valid record in another table. For example, a build item references its build and selected component. |
+| Trace a saved build from the browser to the database. | The browser submits `POST /builds/new`. The route checks the active user, CSRF and the inputs, then inserts a row with bound parameters. A 303 sends the browser to the saved build. |
+| Why use cents? | Integer arithmetic keeps the stored amounts and totals exact. |
+| Can an admin edit another student's build? | No. Admin applies to the catalogue. The build query still requires the current user's ID. |
+| What happens when a part is deleted? | A part referenced by a build is protected by a foreign key. Deleting a build removes its linked items and keeps catalogue parts. |
+| What is CSRF? | It is when another site tries to trigger a request using the browser's login. The server checks that each change includes a valid token from this app. |
+| How do sessions work? | Login generates a new session token. The server stores a digest and expiry. Logout deletes that record and clears the cookie. |
+| What changes when the CPU socket is wrong? | The build displays a mismatch warning when the specifications are known. The user can remove the part and choose a replacement. |
+| What did your teammate do? | Describe only the work each of you can show in commits, tests or documentation. The handoff did not contain a verified contribution record. |
+| What work remains? | Confirm the topic and account workflow, collect browser and accessibility evidence, record team contributions and finish the report, slides and video. |
 
-**Why integer cents?** It avoids floating-point rounding problems for prices.
-
-**How do you prevent SQL injection?** Values are passed as parameters using `?` placeholders, not joined into SQL strings.
-
-**Can a student edit another student's build?** The SQL query checks both build ID and current user ID.
-
-**What is the role difference?** Students edit their own builds; only admins can add catalogue components in this prototype.
-
-**Does it already check compatibility?** No. CPU socket and RAM types are stored, but validation is a planned improvement.
-
-**Is the app deployed?** Currently localhost only, which the assignment permits.
-
-**How did you use AI?** Answer truthfully. Material AI assistance needs to be declared according to course rules.
-
-## Important follow-up with lecturer
-
-- Confirm topic and stack approval.
-- Ask which checkpoint is expected on 24 November, and whether the missed earlier checkpoints can be documented (they cannot simply be replaced by the final demo).
-- Ask what counts as the required asynchronous and file-processing feature.
-- Confirm how to document material AI assistance.
+Ask the lecturer which checkpoint is due, confirm the title and FastAPI/SQLite stack, and ask whether operator-provisioned accounts are accepted. Mention missed sessions accurately if asked and record any answer in the checkpoint notes.

@@ -3,27 +3,52 @@
 {% block content %}
 <p><a href="/">← My builds</a></p>
 <h1>{{ build.title }}</h1>
-<p>Budget: €{{ '%.2f'|format(build.budget_cents/100) }} · Total: <strong>€{{ '%.2f'|format(total/100) }}</strong></p>
+<p>Budget: {% if build.budget_cents %}€{{ '%.2f'|format(build.budget_cents/100) }}{% else %}No limit{% endif %}
+  · Total: <strong>€{{ '%.2f'|format(total/100) }}</strong></p>
 {% if total > build.budget_cents and build.budget_cents > 0 %}<p class="warning">This build is over budget.</p>{% endif %}
+<h2>Compatibility</h2>
+{% if warnings %}<ul class="warning">{% for warning in warnings %}<li>{{ warning }}</li>{% endfor %}</ul>{% endif %}
+{% if compatibility_status %}<p class="note">{{ compatibility_status }}</p>{% endif %}
 <h2>Selected components</h2>
 {% if items %}
+<div class="table-wrap">
 <table>
  <caption>Components saved in this build</caption>
- <thead><tr><th scope="col">Category</th><th scope="col">Component</th><th scope="col">Price</th><th scope="col">Action</th></tr></thead>
+ <thead><tr><th scope="col">Category</th><th scope="col">Component</th><th scope="col">Quantity</th><th scope="col">Subtotal</th><th scope="col">Action</th></tr></thead>
  <tbody>
  {% for item in items %}
  <tr>
-   <td>{{ item.category }}</td><td>{{ item.name }}</td><td>€{{ '%.2f'|format(item.price_cents * item.quantity / 100) }}</td>
-   <td><form method="post" action="/builds/{{ build.id }}/items/{{ item.id }}/delete">
-      <input type="hidden" name="csrf" value="{{ csrf }}"><button class="small secondary" type="submit">Remove</button>
-   </form></td>
+   <td>{{ item.category }}</td><td>{{ item.name }}</td>
+   <td>
+     {% if item.category in ('CPU', 'Motherboard') %}
+       {{ item.quantity }}
+     {% else %}
+       <form class="quantity-form" method="post" action="/builds/{{ build.id }}/items/{{ item.id }}/quantity">
+         <input type="hidden" name="csrf" value="{{ csrf }}">
+         <label class="visually-hidden" for="quantity-{{ item.id }}">Quantity for {{ item.name }}</label>
+         <input id="quantity-{{ item.id }}" name="quantity" type="number" min="1" max="20" value="{{ item.quantity }}" required>
+         <button class="small secondary" type="submit">Update</button>
+       </form>
+     {% endif %}
+   </td>
+   <td>€{{ '%.2f'|format(item.price_cents * item.quantity / 100) }}</td>
+   <td>
+     <details>
+       <summary>Remove</summary>
+       <form method="post" action="/builds/{{ build.id }}/items/{{ item.id }}/delete">
+         <input type="hidden" name="csrf" value="{{ csrf }}">
+         <button class="small danger" type="submit" name="confirmed" value="yes">Confirm removal</button>
+       </form>
+     </details>
+   </td>
  </tr>
  {% endfor %}
  </tbody>
 </table>
+</div>
 {% else %}<p>No components selected yet.</p>{% endif %}
 <h2>Add a component</h2>
-<form method="post" action="/builds/{{ build.id }}/items" class="form horizontal">
+<form method="post" action="/builds/{{ build.id }}/items" class="form">
   <input type="hidden" name="csrf" value="{{ csrf }}">
   <label for="component">Choose from catalogue</label>
   <select id="component" name="component_id" required>
@@ -34,11 +59,7 @@
   <button type="submit">Add component</button>
 </form>
 <div class="actions">
-  <a href="/builds/{{ build.id }}/edit">Edit name</a>
-  <form method="post" action="/builds/{{ build.id }}/delete" data-confirm="Delete this build?">
-    <input type="hidden" name="csrf" value="{{ csrf }}">
-    <button type="submit" class="danger">Delete build</button>
-  </form>
+  <a href="/builds/{{ build.id }}/edit">Edit build</a>
+  <a href="/builds/{{ build.id }}/delete">Delete build</a>
 </div>
-<p class="note">Compatibility checks are planned, but are not yet implemented in this prototype.</p>
 {% endblock %}

@@ -1,32 +1,25 @@
-# Delivery plan (based on PW2 checkpoints)
+# PW2 Work and Contribution Log
 
-## Next class: 24 Nov — aim to demonstrate a real data flow
+## By the classroom checkpoint
 
-- [x] Draft problem, audience, two workflows
-- [x] Draft sitemap / wireframe / ER diagram
-- [x] SQLite schema and seeded example catalogue
-- [x] Local login foundation, build CRUD, add components and total
-- [ ] Confirm approved topic, actual checkpoint and partner contribution plan
-- [ ] Create team GitHub repository and make **genuine** commits by both students
+- Run the main workflow on the actual HTTPS deployment.
+- Ask the lecturer to confirm the topic, technology stack and account-provisioning procedure.
+- Clarify the current checkpoint and record only the evidence that the pair actually showed.
 
-## Next implementation priorities
+## Work to complete before 14 December
 
-1. Add proper registration/approved provisioning and harden session handling.
-2. Finish admin CRUD for components and categories, safe deletion behavior.
-3. Build compatibility messages based on CPU/motherboard socket and RAM type.
-4. Implement non-sensitive preference cookie and document lifetime.
-5. Confirm and implement asynchronous/file-processing requirement (e.g. verified CSV import/export, asynchronous search).
-6. Add comprehensive automated and manual security tests with negative cases.
-7. Responsive/keyboard/zoom testing in Chrome and Edge.
-8. Screenshots, presentation slides, 3-minute video, 6–10-page technical report.
-9. Clean installation test from ZIP and both team members' defense rehearsal.
+| Owner to agree | Proposed evidence |
+|---|---|
+| Student A | Reproduce the build and database workflow. Make and test a code improvement. Document its request path and commit. |
+| Student B | Verify catalogue, CSS and accessibility across two browsers. Make and test an improvement. Record results and commit. |
+| Both | Review each other's changes, check the clean install, rehearse the complete workflow and document individual contributions. |
+| Both | Finish the 6–10-page report, slides and up-to-three-minute video, then verify the submission ZIP. |
 
-## Team contribution log (fill with actual evidence)
+## Contribution records
 
-| Date | Member | Change | Commit / test evidence |
+| Date | Contributor | Work completed | Evidence |
 |---|---|---|---|
-| 2026-11-23 | AI-assisted initial prototype | Architecture, seed, basic flows | Not a student contribution |
-| TBD | Member A | TBD | TBD |
-| TBD | Member B | TBD | TBD |
+| 23 November 2026 | AI-assisted prototype and continued development | Supplied snapshot and further code, test and documentation changes | Starter snapshot and AI-authored local commits |
+| To complete | Each student | Record real changes, reviews or test execution | Commit, pull request or test record |
 
-Do not confuse preliminary code with an independently implemented or reviewed final project.
+Enter checkpoint evidence only after it is presented or confirmed. Record feedback and outstanding items. Fill the approved team names and contact address in the submission.
