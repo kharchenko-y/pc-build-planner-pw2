@@ -247,3 +247,14 @@ def test_catalogue_shows_fit_for_chosen_build(client):
     client.post("/logout", data={"csrf": csrf(client, "/")})
     login(client, "admin")
     assert client.get(f"/components?build={build_id}&category=CPU").status_code == 404
+
+
+def test_report_sheet_and_itemized_csv(client):
+    login(client)
+    build_id = campus_pc(client)
+    sheet = client.get(f"/report?build={build_id}").text
+    assert sheet.count("Not chosen") == 4 and "Power supply" in sheet
+    rows = client.get(f"/report.csv?build={build_id}").text.splitlines()
+    assert rows[0] == "Build,Category,Component,Quantity,Unit price (EUR),Subtotal (EUR)"
+    assert "Campus PC,Processor,AMD Ryzen 5 7600,1,190.00,190.00" in rows
+    assert "Campus PC,Total,,,,375.00" in rows

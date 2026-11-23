@@ -163,14 +163,21 @@ def summarise(build, items):
     }
 
 
-def user_builds(db, user_id):
-    builds = db.execute("SELECT * FROM builds WHERE user_id = ? ORDER BY id DESC", (user_id,)).fetchall()
+def user_builds(db, user_id, build_id=None):
+    builds = db.execute(
+        "SELECT * FROM builds WHERE user_id = ? AND (? IS NULL OR id = ?) ORDER BY id DESC",
+        (user_id, build_id, build_id),
+    ).fetchall()
     grouped = {}
     for row in db.execute(
         ITEM_QUERY + " JOIN builds b ON b.id = bi.build_id WHERE b.user_id = ? ORDER BY cat.id, c.name", (user_id,),
     ):
         grouped.setdefault(row["build_id"], []).append(row)
     return [summarise(build, grouped.get(build["id"], [])) for build in builds]
+
+
+def amount(cents):
+    return f"{cents / 100:.2f}"
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -598,11 +605,14 @@ def import_components(request: Request, upload: UploadFile = File(...), csrf: st
     return saved(request, "/components", f"Imported {len(rows)} components.")
 
 @app.get("/report", response_class=HTMLResponse)
-def report(request: Request):
+def report(request: Request, build: int = 0):
     user = require_user(request)
     with connection() as db:
-        sheets = user_builds(db, user["id"])
-    return page(request, "report.html", sheets=sheets)
+        if build:
+            owned_build(db, build, user["id"])
+        builds = db.execute("SELECT id, title FROM builds WHERE user_id = ? ORDER BY id DESC", (user["id"],)).fetchall()
+        sheets = user_builds(db, user["id"], build or None)
+    return page(request, "report.html", sheets=sheets, builds=builds, selected=build)
 
 
 def safe_csv_text(value):
@@ -614,20 +624,28 @@ def safe_csv_text(value):
 
 
 @app.get("/report.csv")
-def csv_report(request: Request):
+def csv_report(request: Request, build: int = 0):
     user = require_user(request)
     with connection() as db:
-        rows = db.execute("""SELECT b.title, b.created_at,
-            COALESCE(SUM(bi.quantity * c.price_cents), 0) AS total_cents
-            FROM builds b LEFT JOIN build_items bi ON bi.build_id = b.id
-            LEFT JOIN components c ON c.id = bi.component_id
-            WHERE b.user_id = ? GROUP BY b.id ORDER BY b.id DESC""", (user["id"],)).fetchall()
+        if build:
+            owned_build(db, build, user["id"])
+        sheets = user_builds(db, user["id"], build or None)
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["Build", "Created", "Total (EUR)"])
-    for row in rows:
-        writer.writerow([safe_csv_text(row["title"]), row["created_at"], f"{row['total_cents']/100:.2f}"])
-    return Response(output.getvalue(), media_type="text/csv; charset=utf-8", headers={"Content-Disposition": 'attachment; filename="build-report.csv"'})
+    writer.writerow(["Build", "Category", "Component", "Quantity", "Unit price (EUR)", "Subtotal (EUR)"])
+    for sheet in sheets:
+        title = safe_csv_text(sheet["build"]["title"])
+        for item in sheet["parts"]:
+            writer.writerow([
+                title, CATEGORY_LABELS[item["category"]], safe_csv_text(item["name"]), item["quantity"],
+                amount(item["price_cents"]), amount(item["price_cents"] * item["quantity"]),
+            ])
+        writer.writerow([title, "Total", "", "", "", amount(sheet["total"])])
+        if sheet["budget"]:
+            writer.writerow([title, "Budget", "", "", "", amount(sheet["budget"])])
+    name = f"build-{build}.csv" if build else "build-report.csv"
+    return Response(output.getvalue(), media_type="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": f'attachment; filename="{name}"'})
 
 
 @app.exception_handler(StarletteHTTPException)

@@ -1,38 +1,76 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import money, budget_line %}
+{% from '_macros.html' import money, spec_list %}
 {% block title %}Reports | PC Build Planner{% endblock %}
 {% block content %}
-<p class="print-only">PC Build Planner · report for {{ user.username }}</p>
+<p class="print-only">PC Build Planner · parts sheet for {{ user.username }}</p>
 <div class="page-head">
   <div>
     <h1>Build reports</h1>
-    <p class="lede">Current totals calculated from the latest catalogue prices.</p>
+    <p class="lede">A parts sheet for each build: every slot, quantities, prices and the result of both checks. Print it to take to a shop or export it to a spreadsheet.</p>
   </div>
   <div class="report-controls no-print">
+    <form method="get" action="/report">
+      <div class="field">
+        <label for="report-build">Show</label>
+        <select id="report-build" name="build">
+          <option value="0">All builds ({{ builds|length }})</option>
+          {% for b in builds %}<option value="{{ b.id }}"{% if selected == b.id %} selected{% endif %}>{{ b.title }}</option>{% endfor %}
+        </select>
+      </div>
+      <button class="btn-ghost" type="submit">Show</button>
+    </form>
     <button type="button" data-print>Print</button>
-    <a class="btn btn-ghost" href="/report.csv" download>Export CSV</a>
+    <a class="btn btn-ghost" href="/report.csv{{ '?build=' ~ selected if selected }}" download>Export CSV</a>
   </div>
 </div>
-<div class="sheet build-sheet">
+
+{% for s in sheets %}
+{%- set over = s.budget and s.total > s.budget -%}
+<article class="sheet build-sheet" aria-labelledby="sheet-{{ s.build.id }}">
+  <header class="sheet-head">
+    <h2 id="sheet-{{ s.build.id }}">{{ s.build.title }}</h2>
+    <p>Created {{ s.build.created_at[:10] }} · {{ s.chosen|length }} of 7 parts chosen</p>
+  </header>
+  <dl class="sheet-figures">
+    <div><dt>Total</dt><dd class="money">{{ money(s.total) }}</dd></div>
+    <div><dt>Budget</dt><dd class="money">{{ money(s.budget) if s.budget else 'No limit' }}</dd></div>
+    <div><dt>{{ 'Over budget by' if over else 'Remaining' }}</dt><dd class="money{{ ' is-over' if over }}">{% if not s.budget %}–{% elif over %}{{ money(s.total - s.budget) }}{% else %}{{ money(s.budget - s.total) }}{% endif %}</dd></div>
+    <div><dt>Compatibility</dt><dd>{{ {'ok': 'Socket and memory match', 'issue': 'Problem found'}.get(s.state, 'Incomplete') }}</dd></div>
+  </dl>
   <div class="table-wrap">
     <table class="report-table">
-      <caption class="visually-hidden">Overview of builds</caption>
-      <thead><tr><th scope="col">Build</th><th scope="col">Created</th><th scope="col">Budget status</th><th scope="col" class="num">Budget</th><th scope="col" class="num">Total</th></tr></thead>
+      <caption class="visually-hidden">Parts in {{ s.build.title }}</caption>
+      <thead><tr><th scope="col">Slot</th><th scope="col">Part and key specifications</th><th scope="col" class="num">Qty</th><th scope="col" class="num col-unit">Unit price</th><th scope="col" class="num">Subtotal</th></tr></thead>
       <tbody>
-      {% for s in sheets %}
+      {% for cat in CATEGORY_ORDER %}
+        {% for item in s.parts if item.category == cat %}
         <tr>
-          <th scope="row"><a href="/builds/{{ s.build.id }}">{{ s.build.title }}</a></th>
-          <td>{{ s.build.created_at[:10] }}</td>
-          <td>{{ budget_line(s.total, s.budget) }}</td>
-          <td class="num money">{{ money(s.budget) if s.budget else 'No limit' }}</td>
-          <td class="num money"><strong>{{ money(s.total) }}</strong></td>
+          <th scope="row">{{ CATEGORY_LABELS[cat] if loop.first }}</th>
+          <td><strong>{{ item.name }}</strong>{{ spec_list(item.specs) }}</td>
+          <td class="num">{{ item.quantity }}</td>
+          <td class="num money col-unit">{{ money(item.price_cents) }}</td>
+          <td class="num money">{{ money(item.price_cents * item.quantity) }}</td>
         </tr>
-      {% else %}
-        <tr class="is-missing"><td colspan="5">No builds to report. <a href="/">Create a build</a> to see it here.</td></tr>
+        {% else %}
+        <tr class="is-missing"><th scope="row">{{ CATEGORY_LABELS[cat] }}</th><td colspan="4">Not chosen</td></tr>
+        {% endfor %}
       {% endfor %}
       </tbody>
+      <tfoot><tr><th scope="row" colspan="4">Total</th><td class="num money">{{ money(s.total) }}</td></tr></tfoot>
     </table>
   </div>
+  <ul class="sheet-checks">
+    {% for check in s.checks %}
+    <li><span class="state state-{{ {'ok': 'ok', 'bad': 'bad'}.get(check.state, 'neutral') }}">{{ check.label }}</span><span>{{ check.detail }}</span></li>
+    {% endfor %}
+  </ul>
+  <p class="demo-note">Prices are demonstration values. Not checked: power supply wattage, cooler, BIOS version and case fit.</p>
+  <p class="no-print demo-note"><a href="/builds/{{ s.build.id }}">Open this build</a></p>
+</article>
+{% else %}
+<div class="sheet empty">
+  <h2>No builds to report</h2>
+  <p><a href="/">Create a build</a> and its parts sheet will appear here.</p>
 </div>
-<p class="demo-note">Prices are demonstration values. The CSV export lists name, creation time and total in EUR.</p>
+{% endfor %}
 {% endblock %}
