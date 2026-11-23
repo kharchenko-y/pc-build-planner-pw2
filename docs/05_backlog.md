@@ -18,6 +18,6 @@
 |---|---|
 | Yaroslav Kharchenko | GitHub repository under his account, published PythonAnywhere site under his hosting account and student-session sign-in for the 23 November live recheck. These records do not establish personal authorship of application code. |
 | Second student | Planned presenter for 24 November. Individual implementation, test and review evidence has yet to be supplied. |
-| AI assistance | Supplied prototype and subsequent development/documentation, Claude interface redesign (see [redesign notes](07_interface_redesign.md)), and Codex checkpoint research, documentation, verification and compilation. Reference actual revisions and named test records. |
+| AI assistance | Supplied prototype and subsequent development/documentation, Claude interface redesign (see [redesign notes](07_interface_redesign.md)) and builder redesign (see [builder notes](08_builder_redesign.md)), and Codex checkpoint research, documentation, verification and compilation. Reference actual revisions and named test records. |
 
 Record future contributions with date, member, action and commit/PR/test link. The two missed updates are recorded as missed. The checkpoints are pending presentation and lecturer assessment.

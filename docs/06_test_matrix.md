@@ -23,3 +23,16 @@ A clean Git extraction of the redesign was installed with the bundled local whee
 | Production | HTTPS baseline available; selected operations persist | [Live browser evidence](checkpoints/live-results.txt). Earlier deployment notes recorded HTTP redirect, secure sessions and persistence after worker reload. This recheck left existing data, deployment and worker unchanged. |
 
 Remaining final-release evidence includes a redesigned Linux/hosted check, a second browser engine, HTML/CSS validators, zoom and assistive-technology checks, and repetition from the final submission ZIP. The historical redesign browser run used a Starlette compatibility shim because FastAPI was unavailable in that original environment.
+
+## Builder redesign, 24 November 2026
+
+Local run of branch `ui/builder-redesign`. FastAPI could not be installed in that environment, so the suite ran through a small Starlette-based compatibility shim; repeat on a clean install.
+
+| Scope | Expected | Actual |
+|---|---|---|
+| Automated tests | All HTTP and database cases pass | 30 passed, 12 subtests passed. Unittest subset: 11 OK. |
+| Catalogue upgrade | Existing database keeps builds and gets real parts | `test_demo_catalogue_is_upgraded_in_place` renames placeholder parts in place and adds the rest. |
+| €375 example | €800 budget, Ryzen 5 7600 + PRO B650M-A WIFI + FURY Beast DDR5 kit | €375.00, €425.00 remaining, both checks pass, report and CSV show the items. |
+| Replace and conflicts | One-step replace; concrete mismatch text | Core i5-14400F on the AM5 board names both parts and both sockets; slots are marked. |
+| Browser walkthrough | 1440, 768 and 390 px | 66 of 66 checks in Chromium 157 and Chrome 153; no page-level horizontal scroll, no unexpected console or CSP messages. |
+| Pending | Second browser family, validators, screen reader, zoom, hosted check | Not yet run. |
