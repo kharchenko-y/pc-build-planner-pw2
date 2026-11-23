@@ -1,0 +1,37 @@
+erDiagram
+    USERS ||--o{ BUILDS : owns
+    CATEGORIES ||--o{ COMPONENTS : groups
+    BUILDS ||--o{ BUILD_ITEMS : contains
+    COMPONENTS ||--o{ BUILD_ITEMS : selected_in
+
+    USERS {
+        int id PK
+        string username UK
+        string password_hash
+        string role
+    }
+    CATEGORIES {
+        int id PK
+        string name UK
+    }
+    COMPONENTS {
+        int id PK
+        int category_id FK
+        string name UK
+        int price_cents
+        string socket
+        string ram_type
+    }
+    BUILDS {
+        int id PK
+        int user_id FK
+        string title
+        int budget_cents
+        datetime created_at
+    }
+    BUILD_ITEMS {
+        int id PK
+        int build_id FK
+        int component_id FK
+        int quantity
+    }

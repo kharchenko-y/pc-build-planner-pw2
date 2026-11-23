@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}My builds | PC Build Planner{% endblock %}
+{% block content %}
+<section class="intro">
+  <p class="kicker">WWW Development Technologies · Practical Work II</p>
+  <h1>Plan your PC build</h1>
+  <p>Create a configuration, add components from the catalogue, and calculate its total cost.</p>
+  {% if not user %}
+    <p><a class="button" href="/login">Log in to try the demo</a></p>
+  {% else %}
+    <p><a class="button" href="/builds/new">+ Create a build</a></p>
+  {% endif %}
+</section>
+{% if user %}
+<section>
+  <h2>My saved builds</h2>
+  {% if builds %}
+    <div class="cards">
+    {% for build in builds %}
+      <article class="card">
+        <h3><a href="/builds/{{ build.id }}">{{ build.title }}</a></h3>
+        <p>Current cost: <strong>€{{ '%.2f'|format(build.total_cents / 100) }}</strong></p>
+        <p>Budget: €{{ '%.2f'|format(build.budget_cents / 100) }}</p>
+      </article>
+    {% endfor %}
+    </div>
+  {% else %}
+    <p>No saved builds yet. Create your first configuration.</p>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

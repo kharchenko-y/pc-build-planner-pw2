@@ -1,0 +1,25 @@
+PC Build Planner — initial automated check, 23 November 2026
+
+Command: pytest -q tests/test_app.py
+Result: 10 passed
+
+Coverage performed:
+- Local login and create-build workflow
+- SQL-backed component addition / price total / report and CSV
+- Edit/delete build and escaped title text
+- CSRF rejection
+- Student denied admin-only catalogue changes
+- Admin catalogue item addition
+- One user denied access to another user's build
+- Parameterized search with hostile-looking input
+- CSV formula safeguard
+- Invalid budget rejection
+- Duplicate component rejection
+
+Not tested or not yet implemented:
+- Full final W3C validations, keyboard/zoom, two browsers, deployment
+- Comprehensive authorization/session security, all CRUD for catalogue
+- Compatibility logic, cookie preference, async/file import requirement
+
+NOTE: This proves the local starter functions passed specified checks, not that
+all PW2 requirements or security conditions are satisfied.

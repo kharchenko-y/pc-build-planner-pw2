@@ -1,0 +1,14 @@
+digraph schema {
+  graph [rankdir=LR, fontname="Arial", bgcolor="white", pad="0.35", nodesep="0.55", ranksep="0.85"];
+  node [shape=record, fontname="Arial", style="rounded,filled", fillcolor="#f5f9fd", color="#719abf", fontsize=12];
+  edge [color="#496e91",fontname="Arial",fontsize=10,arrowsize=0.7];
+  users [label="{users|id (PK)\lusername (UNIQUE)\lpassword_hash\lrole\l}"];
+  builds [label="{builds|id (PK)\luser_id (FK)\ltitle\lbudget_cents\lcreated_at\l}"];
+  items [label="{build_items|id (PK)\lbuild_id (FK)\lcomponent_id (FK)\lquantity\l}"];
+  components [label="{components|id (PK)\lcategory_id (FK)\lname\lprice_cents\lsocket\lram_type\l}"];
+  categories [label="{categories|id (PK)\lname (UNIQUE)\l}"];
+  users -> builds [label="1 to many"];
+  builds -> items [label="1 to many"];
+  components -> items [label="1 to many"];
+  categories -> components [label="1 to many"];
+}

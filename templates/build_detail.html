@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}{{ build.title }} | PC Build Planner{% endblock %}
+{% block content %}
+<p><a href="/">← My builds</a></p>
+<h1>{{ build.title }}</h1>
+<p>Budget: €{{ '%.2f'|format(build.budget_cents/100) }} · Total: <strong>€{{ '%.2f'|format(total/100) }}</strong></p>
+{% if total > build.budget_cents and build.budget_cents > 0 %}<p class="warning">This build is over budget.</p>{% endif %}
+<h2>Selected components</h2>
+{% if items %}
+<table>
+ <caption>Components saved in this build</caption>
+ <thead><tr><th scope="col">Category</th><th scope="col">Component</th><th scope="col">Price</th><th scope="col">Action</th></tr></thead>
+ <tbody>
+ {% for item in items %}
+ <tr>
+   <td>{{ item.category }}</td><td>{{ item.name }}</td><td>€{{ '%.2f'|format(item.price_cents * item.quantity / 100) }}</td>
+   <td><form method="post" action="/builds/{{ build.id }}/items/{{ item.id }}/delete">
+      <input type="hidden" name="csrf" value="{{ csrf }}"><button class="small secondary" type="submit">Remove</button>
+   </form></td>
+ </tr>
+ {% endfor %}
+ </tbody>
+</table>
+{% else %}<p>No components selected yet.</p>{% endif %}
+<h2>Add a component</h2>
+<form method="post" action="/builds/{{ build.id }}/items" class="form horizontal">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <label for="component">Choose from catalogue</label>
+  <select id="component" name="component_id" required>
+    {% for component in components %}
+      <option value="{{ component.id }}">{{ component.category }} — {{ component.name }} (€{{ '%.2f'|format(component.price_cents / 100) }})</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Add component</button>
+</form>
+<div class="actions">
+  <a href="/builds/{{ build.id }}/edit">Edit name</a>
+  <form method="post" action="/builds/{{ build.id }}/delete" onsubmit="return confirm('Delete this build?');">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <button type="submit" class="danger">Delete build</button>
+  </form>
+</div>
+<p class="note">Compatibility checks are planned, but are not yet implemented in this prototype.</p>
+{% endblock %}

@@ -1,0 +1,26 @@
+PC BUILD PLANNER — PW2 / FIRST DEMO (24 NOV 2026)
+
+1. Read docs/03_tomorrow_checkpoint.md first.
+2. Windows: open the project folder in PowerShell and run:
+   py -m venv .venv
+   .venv\Scripts\activate
+   pip install -r requirements.txt
+   python setup_db.py
+   python -m uvicorn app:app --reload
+3. Open http://127.0.0.1:8000 (not the HTML file).
+4. Login: student / demo12345 (local demo only).
+5. Create a build -> add parts -> explain total price -> filter catalogue -> show report.
+6. Show docs/er_diagram.png and database/schema.sql.
+7. Open app.py: create_build(), add_item(), component_list(), owned_build().
+
+Suggested registration:
+Team title: PC Build Planner (or agree a separate team name)
+Members: [student A], [student B] — fill actual names
+PW2 title: PC Build Planner — Database-Driven Computer Configuration Tool
+Tools: Python, FastAPI, SQLite, Jinja2, HTML, CSS, Git
+
+IMPORTANT
+This is an initial AI-assisted starter, NOT a finished PW2.
+Both team members need real Git contributions and understanding.
+Ask what checkpoint is due, whether any missed progress notes may still be documented,
+and clarify the scope of required async/file-processing features.

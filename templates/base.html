@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="PC Build Planner - practical database-backed web project.">
+  <title>{% block title %}PC Build Planner{% endblock %}</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<header>
+  <div class="container topbar">
+    <a class="logo" href="/">PC Build Planner</a>
+    <nav aria-label="Main navigation">
+      <a href="/">My builds</a>
+      <a href="/components">Components</a>
+      <a href="/report">Report</a>
+    </nav>
+    {% if user %}
+      <div class="account">
+        <span>{{ user.username }} ({{ user.role }})</span>
+        <form action="/logout" method="post">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <button class="small secondary" type="submit">Log out</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+</header>
+<main class="container">
+  {% block content %}{% endblock %}
+</main>
+<footer class="container">PW2 prototype · 2026 · Demo catalogue and prices</footer>
+</body>
+</html>

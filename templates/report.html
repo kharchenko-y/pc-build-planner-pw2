@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Print report | PC Build Planner{% endblock %}
+{% block content %}
+<h1>My saved builds — report</h1>
+<p>Based on the latest data in the database.</p>
+<div class="actions no-print"><button type="button" onclick="window.print()">Print report</button><a href="/report.csv">Export CSV</a></div>
+<table>
+  <caption>Overview of builds</caption>
+  <thead><tr><th scope="col">Name</th><th scope="col">Created</th><th scope="col">Budget</th><th scope="col">Actual cost</th></tr></thead>
+  <tbody>
+    {% for build in builds %}<tr><td>{{ build.title }}</td><td>{{ build.created_at }}</td><td>€{{ '%.2f'|format(build.budget_cents/100) }}</td><td>€{{ '%.2f'|format(build.total_cents/100) }}</td></tr>
+    {% else %}<tr><td colspan="4">No builds to report.</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endblock %}
