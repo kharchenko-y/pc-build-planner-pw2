@@ -2,7 +2,7 @@
 
 ## By the classroom checkpoint
 
-- Run the main workflow on the actual HTTPS deployment.
+- The main workflow passed on the HTTPS deployment. Rehearse it with the classroom account before presenting.
 - Ask the lecturer to confirm the topic, technology stack and account-provisioning procedure.
 - Clarify the current checkpoint and record only the evidence that the pair actually showed.
 

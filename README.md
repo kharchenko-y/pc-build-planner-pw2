@@ -43,6 +43,8 @@ SQL statements bind input values. Jinja escapes HTML text. Forms use CSRF tokens
 
 Follow [the PythonAnywhere guide](deploy/README.md) for free HTTPS hosting using `a2wsgi` and persistent SQLite. Keep credentials, runtime configuration and the database outside static directories and source control. The web app must run in production mode on the host.
 
+The [classroom deployment](https://yarslv.pythonanywhere.com/) was verified on 23 November 2026. The hosting dashboard shows an expiry date of 23 December 2026. Sign in with the provisioned classroom account and open **Campus PC Demo** to see the verified €375.00 example. The hosting account owner can retrieve the demo password from the private deployment folder.
+
 ## Test commands and materials
 
 - `python -m pytest -q` runs all tests with development dependencies installed.

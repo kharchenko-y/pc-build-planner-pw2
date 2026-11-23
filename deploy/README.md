@@ -2,6 +2,8 @@
 
 This keeps the FastAPI application and the SQLite database. PythonAnywhere's WSGI worker calls FastAPI through a2wsgi. A persistent file in the hosting account's private home directory stores database records, including login sessions.
 
+The WSGI entry point creates the adapter on the first request in each worker. PythonAnywhere loads the WSGI module in the master process before starting workers. Starting the adapter at import time leaves a forked worker with an event loop whose thread is missing.
+
 1. Create a free Beginner web app using **Manual configuration**. Choose Python 3.13 if available. Use the same Python version for the virtual environment.
 2. Upload `PC_Build_Planner_PW2_Hosting.zip` to the hosting account's home directory using **Files**.
 3. Run the following in a PythonAnywhere **Bash** console.
