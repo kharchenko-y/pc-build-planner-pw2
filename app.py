@@ -16,8 +16,8 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from catalogue import INSERT_COMPONENT, MAX_CSV_BYTES, csv_rows, lookup
 from domain import (
-    COMPATIBILITY_CATEGORIES, COMPATIBLE, RAM_TYPES, clean_specs, compatibility, component_values, money_cents,
-    text_amount,
+    CATEGORY_LABELS, CATEGORY_ORDER, CHOOSE_LABELS, RAM_TYPES, SINGLE_CATEGORIES, check_rows, clean_specs,
+    compatibility, compatibility_state, component_values, max_quantity, money_cents, part_fit, text_amount,
 )
 from config import PRODUCTION, ROOT, SESSION_SECONDS, SESSION_SECRET
 from db import connection, verify_password
@@ -33,6 +33,10 @@ app.add_middleware(
 )
 app.mount("/static", StaticFiles(directory=str(ROOT / "static")), name="static")
 templates = Jinja2Templates(directory=str(ROOT / "templates"))
+templates.env.globals.update(
+    CATEGORY_ORDER=CATEGORY_ORDER, CATEGORY_LABELS=CATEGORY_LABELS, CHOOSE_LABELS=CHOOSE_LABELS,
+    max_quantity=max_quantity,
+)
 
 
 @app.middleware("http")
@@ -141,18 +145,41 @@ def saved(request, url, message):
     return redirect(url)
 
 
+ITEM_QUERY = """SELECT bi.id, bi.build_id, bi.quantity, c.id AS component_id, c.name, c.socket, c.ram_type,
+    c.specs, c.price_cents, cat.name AS category
+    FROM build_items bi JOIN components c ON c.id = bi.component_id
+    JOIN categories cat ON cat.id = c.category_id"""
+
+
+def summarise(build, items):
+    """Totals, slot progress and check results for one build."""
+    chosen = {row["category"] for row in items}
+    return {
+        "build": build, "parts": items, "budget": build["budget_cents"],
+        "total": sum(row["price_cents"] * row["quantity"] for row in items),
+        "chosen": [name for name in CATEGORY_ORDER if name in chosen],
+        "missing": [name for name in CATEGORY_ORDER if name not in chosen],
+        "state": compatibility_state(items), "checks": check_rows(items),
+    }
+
+
+def user_builds(db, user_id):
+    builds = db.execute("SELECT * FROM builds WHERE user_id = ? ORDER BY id DESC", (user_id,)).fetchall()
+    grouped = {}
+    for row in db.execute(
+        ITEM_QUERY + " JOIN builds b ON b.id = bi.build_id WHERE b.user_id = ? ORDER BY cat.id, c.name", (user_id,),
+    ):
+        grouped.setdefault(row["build_id"], []).append(row)
+    return [summarise(build, grouped.get(build["id"], [])) for build in builds]
+
+
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
     user = user_from_request(request)
     builds = []
     if user:
         with connection() as db:
-            builds = db.execute("""SELECT b.id, b.title, b.budget_cents,
-                COALESCE(SUM(c.price_cents * bi.quantity), 0) AS total_cents
-                FROM builds b
-                LEFT JOIN build_items bi ON bi.build_id = b.id
-                LEFT JOIN components c ON c.id = bi.component_id
-                WHERE b.user_id = ? GROUP BY b.id ORDER BY b.id DESC""", (user["id"],)).fetchall()
+            builds = user_builds(db, user["id"])
     view = request.cookies.get("pcbuild_view", "cards")
     return page(request, "home.html", builds=builds, view="list" if view == "list" else "cards")
 
@@ -253,34 +280,26 @@ def build_detail(request: Request, build_id: int):
     user = require_user(request)
     with connection() as db:
         build = owned_build(db, build_id, user["id"])
-        items = db.execute("""SELECT bi.id, bi.quantity, c.name, c.socket, c.ram_type,
-            c.price_cents, cat.name AS category
-            FROM build_items bi JOIN components c ON c.id = bi.component_id
-            JOIN categories cat ON cat.id = c.category_id
-            WHERE bi.build_id = ? ORDER BY cat.id""", (build_id,)).fetchall()
-        components = db.execute("""SELECT c.id, c.name, c.price_cents, c.socket, c.ram_type, cat.name AS category
-            FROM components c JOIN categories cat ON cat.id = c.category_id
-            ORDER BY cat.id, c.name""").fetchall()
-    total = sum(row["price_cents"] * row["quantity"] for row in items)
+        items = db.execute(ITEM_QUERY + " WHERE bi.build_id = ? ORDER BY cat.id, c.name", (build_id,)).fetchall()
+    summary = summarise(build, items)
+    slots = [{"category": name, "parts": [row for row in items if row["category"] == name]} for name in CATEGORY_ORDER]
     warnings, status = compatibility(items)
-    # Summary badge for the interface: mismatch, all checks passed, or incomplete.
-    state = "issue" if warnings else ("ok" if status == COMPATIBLE else "incomplete")
     return page(
-        request, "build_detail.html", build=build, items=items,
-        components=components, total=total, warnings=warnings, compatibility_status=status,
-        compatibility_state=state,
+        request, "build_detail.html", build=build, summary=summary, slots=slots, items=items,
+        total=summary["total"], warnings=warnings, compatibility_status=status,
     )
 
 
 @app.post("/builds/{build_id}/items")
-def add_item(request: Request, build_id: int, component_id: int = Form(...), csrf: str = Form(...)):
+def add_item(request: Request, build_id: int, component_id: int = Form(...), replace: str = Form(""),
+             csrf: str = Form(...)):
     user = require_user(request)
     check_token(request, csrf)
     with connection() as db:
         db.execute("BEGIN IMMEDIATE")
         owned_build(db, build_id, user["id"])
         component = db.execute(
-            """SELECT c.category_id, cat.name AS category FROM components c
+            """SELECT c.name, c.category_id, cat.name AS category FROM components c
                JOIN categories cat ON cat.id = c.category_id WHERE c.id = ?""",
             (component_id,),
         ).fetchone()
@@ -291,14 +310,25 @@ def add_item(request: Request, build_id: int, component_id: int = Form(...), csr
         ).fetchone()
         if duplicate:
             raise HTTPException(status_code=400, detail="This component is already in the build.")
-        if component["category"] in COMPATIBILITY_CATEGORIES and db.execute(
-            """SELECT 1 FROM build_items bi JOIN components c ON c.id = bi.component_id
-               WHERE bi.build_id = ? AND c.category_id = ?""",
-            (build_id, component["category_id"]),
-        ).fetchone():
-            raise HTTPException(status_code=409, detail="Remove the current part of this type before replacing it.")
+        slot = f"/builds/{build_id}#slot-{component['category'].lower()}"
+        if component["category"] in SINGLE_CATEGORIES:
+            current = db.execute(
+                """SELECT bi.id FROM build_items bi JOIN components c ON c.id = bi.component_id
+                   WHERE bi.build_id = ? AND c.category_id = ?""",
+                (build_id, component["category_id"]),
+            ).fetchone()
+            if current and replace != "yes":
+                label = CATEGORY_LABELS[component["category"]].lower()
+                raise HTTPException(
+                    status_code=409, detail=f"The {label} slot is already filled. Use Replace to swap the part.",
+                )
+            if current:
+                db.execute(
+                    "UPDATE build_items SET component_id = ?, quantity = 1 WHERE id = ?", (component_id, current["id"]),
+                )
+                return saved(request, slot, f"{component['name']} replaced the previous part.")
         db.execute("INSERT INTO build_items (build_id, component_id, quantity) VALUES (?, ?, 1)", (build_id, component_id))
-    return saved(request, f"/builds/{build_id}", "Component added.")
+    return saved(request, slot, f"{component['name']} added.")
 
 
 @app.post("/builds/{build_id}/items/{item_id}/quantity")
@@ -316,11 +346,11 @@ def update_quantity(request: Request, build_id: int, item_id: int, quantity: int
         ).fetchone()
         if item is None:
             raise HTTPException(status_code=404, detail="Component is not in this build.")
-        maximum = 1 if item["category"] in {"CPU", "Motherboard"} else 20
+        maximum = max_quantity(item["category"])
         if not 1 <= quantity <= maximum:
             raise HTTPException(status_code=422, detail=f"Quantity must be between 1 and {maximum}.")
         db.execute("UPDATE build_items SET quantity = ? WHERE id = ? AND build_id = ?", (quantity, item_id, build_id))
-    return saved(request, f"/builds/{build_id}", "Quantity updated.")
+    return saved(request, f"/builds/{build_id}#slot-{item['category'].lower()}", "Quantity updated.")
 
 
 @app.post("/builds/{build_id}/items/{item_id}/delete")
@@ -381,36 +411,74 @@ def delete_build(request: Request, build_id: int, confirmed: str = Form(""), csr
         db.execute("DELETE FROM builds WHERE id = ? AND user_id = ?", (build_id, user["id"]))
     return saved(request, "/", "Build deleted.")
 
-def catalogue_data(request, q, category, template):
-    require_user(request)
+def part_view(row, context):
+    """A catalogue row plus, when a build is chosen, its fit and what adding it would do."""
+    view = dict(row, fit=None, action=None, after=None)
+    if context:
+        items = context["parts"]
+        same = [item for item in items if item["category"] == row["category"]]
+        view["fit"] = part_fit(row, items)
+        if any(item["component_id"] == row["id"] for item in items):
+            view["action"] = "in_build"
+        elif row["category"] in SINGLE_CATEGORIES and same:
+            view["action"] = "replace"
+            view["after"] = context["total"] - same[0]["price_cents"] * same[0]["quantity"] + row["price_cents"]
+        else:
+            view["action"] = "add"
+            view["after"] = context["total"] + row["price_cents"]
+    return view
+
+
+def catalogue_data(request, q, category, build, template):
+    user = require_user(request)
     if len(q) > 80 or len(category) > 30:
         raise HTTPException(status_code=422, detail="Search text is too long.")
     with connection() as db:
-        categories = db.execute("SELECT * FROM categories ORDER BY name").fetchall()
+        categories = db.execute("SELECT * FROM categories ORDER BY id").fetchall()
         if category and category not in {row["name"] for row in categories}:
             raise HTTPException(status_code=422, detail="Choose a category from the catalogue.")
-        rows = lookup(db, q.strip(), category)
-    return page(request, template, components=rows, categories=categories, q=q, selected=category)
+        matches = lookup(db, q.strip(), "")
+        builds = db.execute("SELECT id, title FROM builds WHERE user_id = ? ORDER BY id DESC", (user["id"],)).fetchall()
+        context = None
+        if build:
+            owned = owned_build(db, build, user["id"])
+            items = db.execute(ITEM_QUERY + " WHERE bi.build_id = ? ORDER BY cat.id", (build,)).fetchall()
+            context = summarise(owned, items)
+    counts = {row["name"]: 0 for row in categories}
+    for row in matches:
+        counts[row["category"]] += 1
+    parts = [part_view(row, context) for row in matches if not category or row["category"] == category]
+    if context:
+        # Parts that fit the chosen build come first, conflicts last.
+        parts.sort(key=lambda part: (
+            CATEGORY_ORDER.index(part["category"]),
+            {"ok": 0, "bad": 2}.get(part["fit"][0] if part["fit"] else "", 1),
+        ))
+    return page(
+        request, template, components=parts, categories=categories, counts=counts, matches=len(matches),
+        q=q, selected=category, context=context, builds=builds,
+    )
 
 
 @app.get("/components", response_class=HTMLResponse)
-def component_list(request: Request, q: str = "", category: str = ""):
-    return catalogue_data(request, q, category, "components.html")
+def component_list(request: Request, q: str = "", category: str = "", build: int = 0):
+    return catalogue_data(request, q, category, build, "components.html")
 
 
 @app.get("/components/results", response_class=HTMLResponse)
-def component_results(request: Request, q: str = "", category: str = ""):
-    return catalogue_data(request, q, category, "component_results.html")
+def component_results(request: Request, q: str = "", category: str = "", build: int = 0):
+    return catalogue_data(request, q, category, build, "component_results.html")
 
 
 def catalogue_form(request, component_id=None, values=None, error=None):
     with connection() as db:
-        categories = db.execute("SELECT * FROM categories ORDER BY name").fetchall()
+        categories = db.execute("SELECT * FROM categories ORDER BY id").fetchall()
         if component_id is not None and values is None:
             row = find_component(db, component_id)
             values = dict(row, price=text_amount(row["price_cents"]))
     return page(
-        request, "component_form.html", values=values or {"name": "", "price": "", "category_id": None, "socket": "", "ram_type": "", "specs": ""},
+        request, "component_form.html",
+        values=values or {"name": "", "price": "", "category_id": None, "socket": "", "ram_type": "", "specs": ""},
         categories=categories, ram_types=sorted(RAM_TYPES),
         heading="Edit component" if component_id is not None else "Add component", error=error,
     )
@@ -533,12 +601,8 @@ def import_components(request: Request, upload: UploadFile = File(...), csrf: st
 def report(request: Request):
     user = require_user(request)
     with connection() as db:
-        builds = db.execute("""SELECT b.title, b.budget_cents, b.created_at,
-            COALESCE(SUM(bi.quantity * c.price_cents), 0) AS total_cents
-            FROM builds b LEFT JOIN build_items bi ON bi.build_id = b.id
-            LEFT JOIN components c ON c.id = bi.component_id
-            WHERE b.user_id = ? GROUP BY b.id ORDER BY b.id DESC""", (user["id"],)).fetchall()
-    return page(request, "report.html", builds=builds)
+        sheets = user_builds(db, user["id"])
+    return page(request, "report.html", sheets=sheets)
 
 
 def safe_csv_text(value):

@@ -1,46 +1,35 @@
 {% extends 'base.html' %}
 {% block title %}{{ heading }} | PC Build Planner{% endblock %}
 {% block content %}
-<div class="narrow">
 {%- set editing = request.url.path.endswith('/edit') -%}
 {%- set back = request.url.path[:-5] if editing else '/' -%}
 {%- set title_error = error and error.startswith('Title') -%}
 {%- set budget_error = error and error.startswith('Budget') -%}
-<nav class="breadcrumb" aria-label="Breadcrumb">
-  <ol>
-    <li><a href="/">My builds</a></li>
-    {% if editing %}<li><a href="{{ back }}">Build</a></li>{% endif %}
-    <li aria-current="page">{{ heading }}</li>
-  </ol>
-</nav>
-<div class="panel">
-  <div class="page-head">
-    <div>
-      <h1>{{ heading }}</h1>
-      <p class="lede">{% if editing %}Change the name or budget. Parts stay as they are.{% else %}Give the build a name and a budget. You add parts on the next screen.{% endif %}</p>
-    </div>
-  </div>
-  {% if error %}<div class="alert alert-error" role="alert" id="form-error"><p>{{ error }}</p></div>{% endif %}
-  <form method="post" class="form">
-    <input type="hidden" name="csrf" value="{{ csrf }}">
-    <div class="field">
-      <label for="title">Build name</label>
-      <input id="title" name="title" value="{{ title }}" minlength="2" maxlength="60" required aria-describedby="title-hint{% if title_error %} form-error{% endif %}"{% if title_error %} aria-invalid="true"{% endif %}>
-      <p class="hint" id="title-hint">2 to 60 characters, for example “Office PC” or “Gaming build”.</p>
-    </div>
-    <div class="field">
-      <label for="budget">Budget (EUR)</label>
-      <div class="affix">
-        <span aria-hidden="true">€</span>
-        <input id="budget" name="budget" type="number" min="0" max="100000" step="0.01" value="{{ budget }}" inputmode="decimal" aria-describedby="budget-hint{% if budget_error %} form-error{% endif %}"{% if budget_error %} aria-invalid="true"{% endif %} required>
+<div class="narrow">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <ol><li><a href="/">My builds</a></li>{% if editing %}<li><a href="{{ back }}">Build</a></li>{% endif %}<li aria-current="page">{{ heading }}</li></ol>
+  </nav>
+  <div class="sheet sheet-pad">
+    <h1>{{ heading }}</h1>
+    <p class="lede muted">{% if editing %}Change the name or the budget. The chosen parts stay as they are.{% else %}Name the build and set a budget. Next you fill the part slots.{% endif %}</p>
+    {% if error %}<div class="notice notice-error" role="alert" id="form-error"><p>{{ error }}</p></div>{% endif %}
+    <form method="post" class="form">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <div class="field">
+        <label for="title">Build name</label>
+        <input id="title" name="title" value="{{ title }}" minlength="2" maxlength="60" required aria-describedby="title-hint{% if title_error %} form-error{% endif %}"{% if title_error %} aria-invalid="true"{% endif %}>
+        <p class="hint" id="title-hint">2 to 60 characters, for example “Office PC” or “Gaming build”.</p>
       </div>
-      <p class="hint" id="budget-hint">Up to two decimal places. Enter 0 if you have no budget limit.</p>
-    </div>
-    <div class="form-actions">
-      <button type="submit">{{ submit }}</button>
-      <a class="btn btn-secondary" href="{{ back }}">Cancel</a>
-    </div>
-  </form>
-</div>
+      <div class="field">
+        <label for="budget">Budget (EUR)</label>
+        <div class="affix"><span aria-hidden="true">€</span><input id="budget" name="budget" type="number" min="0" max="100000" step="0.01" value="{{ budget }}" inputmode="decimal" required aria-describedby="budget-hint{% if budget_error %} form-error{% endif %}"{% if budget_error %} aria-invalid="true"{% endif %}></div>
+        <p class="hint" id="budget-hint">Up to two decimal places. Enter 0 for no budget limit.</p>
+      </div>
+      <div class="form-actions">
+        <button type="submit">{{ submit }}</button>
+        <a class="btn btn-ghost" href="{{ back }}">Cancel</a>
+      </div>
+    </form>
+  </div>
 </div>
 {% endblock %}

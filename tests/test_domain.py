@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from catalogue import INSERT_COMPONENT, csv_rows, lookup
 from db import DEMO_NAMES, connection, init_database, make_password_hash, verify_password
-from domain import compatibility, component_values, money_cents
+from domain import compatibility, component_values, money_cents, part_fit
 
 
 class DomainTests(unittest.TestCase):
@@ -42,6 +42,19 @@ class DomainTests(unittest.TestCase):
         self.assertEqual(compatibility(items), ([], "CPU socket and RAM generation match the motherboard."))
         self.assertIn("Remove duplicate", compatibility([*items, items[1]])[0][0])
         self.assertIn("Complete both checks", compatibility(items[:1])[1])
+
+    def test_warnings_and_fit_name_the_parts(self):
+        items = [
+            {"category": "Motherboard", "name": "Board X", "socket": "AM5", "ram_type": "DDR5"},
+            {"category": "CPU", "name": "CPU Y", "socket": "LGA1700", "ram_type": None},
+        ]
+        warning = compatibility(items)[0][0]
+        self.assertIn("CPU Y uses socket LGA1700", warning)
+        self.assertIn("AM5 socket on Board X", warning)
+        self.assertEqual(part_fit({"category": "CPU", "socket": "AM5", "ram_type": None}, items)[0], "ok")
+        self.assertEqual(part_fit({"category": "RAM", "socket": None, "ram_type": "DDR4"}, items)[0], "bad")
+        self.assertEqual(part_fit({"category": "Motherboard", "socket": "AM5", "ram_type": "DDR5"}, items)[0], "bad")
+        self.assertIsNone(part_fit({"category": "GPU", "socket": None, "ram_type": None}, items))
 
     def test_csv_input_validation(self):
         header = b"category,name,price_eur,socket,ram_type\n"

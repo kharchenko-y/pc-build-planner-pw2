@@ -196,16 +196,54 @@ def test_logout_revokes_previously_issued_session(client):
     assert client.get("/builds/new").status_code == 401
 
 
-def test_build_summary_shows_total_budget_and_compatibility(client):
-    login(client)
+def add(client, build_id, component_id, **extra):
+    data = {"component_id": component_id, "csrf": csrf(client, f"/builds/{build_id}"), **extra}
+    return client.post(f"/builds/{build_id}/items", data=data, follow_redirects=False)
+
+
+def campus_pc(client):
     token = csrf(client, "/builds/new")
     result = client.post("/builds/new", data={"title": "Campus PC", "budget": "800", "csrf": token}, follow_redirects=False)
     build_id = int(result.headers["location"].split("/")[-1])
     for component_id in (1, 3, 5):  # AMD Ryzen 5 7600, MSI PRO B650M-A WIFI, Kingston FURY Beast DDR5 kit
-        client.post(f"/builds/{build_id}/items", data={"component_id": component_id, "csrf": csrf(client, f"/builds/{build_id}")})
+        assert add(client, build_id, component_id).status_code == 303
+    return build_id
+
+
+def test_build_summary_shows_total_budget_and_compatibility(client):
+    login(client)
+    build_id = campus_pc(client)
     document = BeautifulSoup(client.get(f"/builds/{build_id}").text, "html.parser")
-    assert document.select_one(".summary-total .total").get_text(strip=True) == "€375.00"
-    assert "€425.00 left" in document.select_one(".budget-state").get_text()
-    assert document.select_one(".compat .status-ok").get_text(strip=True) == "Compatible"
-    assert document.select_one('#component option[value="1"]').has_attr("disabled")
+    assert document.select_one(".plate .total").get_text(strip=True) == "€375.00"
+    assert "€425.00" in document.select_one(".plate-figures").get_text()
+    assert len(document.select(".checks .is-ok")) == 2
+    assert len(document.select(".slot.is-empty")) == 4
+    assert document.select_one(".slot.is-next")["id"] == "slot-gpu"
     assert "€375.00" in client.get("/report").text
+
+
+def test_replace_part_in_single_slot(client):
+    login(client)
+    build_id = campus_pc(client)
+    conflict = add(client, build_id, 2)
+    assert conflict.status_code == 409 and "Use Replace" in conflict.text
+    assert add(client, build_id, 2, replace="yes").status_code == 303
+    page = BeautifulSoup(client.get(f"/builds/{build_id}").text, "html.parser")
+    cpu = page.select_one("#slot-cpu").get_text()
+    assert "Intel Core i5-14400F" in cpu and "AMD Ryzen 5 7600" not in cpu
+    socket = page.select_one(".checks .is-bad").get_text()
+    assert "Intel Core i5-14400F uses socket LGA1700" in socket and "MSI PRO B650M-A WIFI" in socket
+
+
+def test_catalogue_shows_fit_for_chosen_build(client):
+    login(client)
+    build_id = campus_pc(client)
+    page = BeautifulSoup(client.get(f"/components?build={build_id}&category=CPU").text, "html.parser")
+    rows = page.select(".part-row")
+    assert "Fits your AM5 motherboard" in rows[0].get_text()
+    assert "Needs socket LGA1700, your motherboard has AM5" in rows[-1].get_text()
+    assert "In this build" in rows[0].get_text()
+    assert rows[1].select_one('input[name="replace"]') is not None
+    client.post("/logout", data={"csrf": csrf(client, "/")})
+    login(client, "admin")
+    assert client.get(f"/components?build={build_id}&category=CPU").status_code == 404

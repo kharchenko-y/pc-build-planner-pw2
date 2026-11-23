@@ -1,176 +1,148 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import money, category_class, budget_status, empty_icon %}
+{% from '_macros.html' import money, part_icon, spec_list, chips, budget_bar %}
 {% block title %}{{ build.title }} | PC Build Planner{% endblock %}
+{% block main_class %} has-mobile-total{% endblock %}
 {% block content %}
-{#- Cost per category, in catalogue order, for the budget bar and legend. -#}
-{%- set ns = namespace(order=[], sums={}, x=0) -%}
-{%- for item in items -%}
-  {%- if item.category not in ns.sums -%}{%- set ns.order = ns.order + [item.category] -%}{%- endif -%}
-  {%- set _ = ns.sums.update({item.category: ns.sums.get(item.category, 0) + item.price_cents * item.quantity}) -%}
-{%- endfor -%}
-{%- set budget = build.budget_cents -%}
-{%- set scale = [total, budget]|max -%}
-{%- set in_build = items|map(attribute='name')|list -%}
-{%- set used_categories = items|map(attribute='category')|list -%}
-{%- set single = ['CPU', 'Motherboard', 'RAM'] -%}
-<nav class="breadcrumb" aria-label="Breadcrumb">
-  <ol>
-    <li><a href="/">My builds</a></li>
-    <li aria-current="page">{{ build.title }}</li>
-  </ol>
+{%- set s = summary -%}
+{%- set budget = s.budget -%}
+{%- set over = budget and s.total > budget -%}
+{%- set ns = namespace(next=None) -%}
+{%- for slot in slots %}{% if not slot.parts and ns.next is none %}{% set ns.next = slot.category %}{% endif %}{% endfor -%}
+{%- set choose = CHOOSE_LABELS -%}
+{%- set socket_bad = s.checks[0].state == 'bad' -%}
+{%- set memory_bad = s.checks[1].state == 'bad' -%}
+{%- set conflicts = {
+  'CPU': ['Socket does not match the motherboard'] if socket_bad else [],
+  'Motherboard': (['Socket does not match the processor'] if socket_bad else []) + (['Memory type does not match the kit'] if memory_bad else []),
+  'RAM': ['Memory type does not match the motherboard'] if memory_bad else []} -%}
+{%- set hints = {
+  'CPU': 'Start here. The processor decides which motherboards fit.',
+  'Motherboard': 'Needs the same socket as the processor.',
+  'RAM': 'Needs the memory type the motherboard takes.',
+  'GPU': 'Needed unless the processor has integrated graphics.',
+  'Storage': 'An SSD for the system and programs. You can add several drives.',
+  'PSU': 'Make sure its wattage covers the graphics card. The planner does not calculate this.',
+  'Case': 'Make sure it supports the motherboard size. The planner does not check this.'} -%}
+<nav class="crumbs" aria-label="Breadcrumb">
+  <ol><li><a href="/">My builds</a></li><li aria-current="page">{{ build.title }}</li></ol>
 </nav>
 <div class="page-head">
   <div>
     <h1>{{ build.title }}</h1>
-    <p class="lede">{{ items|length }} {{ 'part' if items|length == 1 else 'parts' }} selected. Prices come from the current catalogue.</p>
+    <p class="lede">{{ s.chosen|length }} of 7 parts chosen{% if ns.next %}. Next: {{ CATEGORY_LABELS[ns.next]|lower }}.{% else %}. Every slot is filled.{% endif %}</p>
   </div>
-  <div class="page-actions">
-    <a class="btn btn-secondary" href="/builds/{{ build.id }}/edit">Edit build</a>
+  <div class="actions">
+    <a class="btn btn-ghost" href="/builds/{{ build.id }}/edit">Edit name and budget</a>
     <a class="btn btn-danger-quiet" href="/builds/{{ build.id }}/delete">Delete build</a>
   </div>
 </div>
 
-<div class="build-layout">
-  <div class="summary">
-    <section class="panel summary-head" aria-labelledby="summary-title">
-      <h2 id="summary-title" class="visually-hidden">Cost summary</h2>
-      <div class="summary-total">
-        <span class="label">Current total</span>
-        <span class="total money">{{ money(total) }}</span>
-        <span class="of">{% if budget %}of <span class="money">{{ money(budget) }}</span> budget{% else %}No budget limit{% endif %}</span>
-      </div>
-      <div class="budget-state">
-        {{ budget_status(total, budget) }}
-        {% if budget and total > budget %}<span class="visually-hidden">This build is over budget.</span>{% endif %}
-        <a class="status-link" href="#compat-title">{% if compatibility_state == 'ok' %}<span class="status status-ok">Compatible</span>{% elif compatibility_state == 'issue' %}<span class="status status-bad">Mismatch found</span>{% else %}<span class="status status-warn">Checks incomplete</span>{% endif %}</a>
-      </div>
-      {% if scale %}
-      <svg class="budget-bar" viewBox="0 0 100 18" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-        <rect class="track" width="100" height="18"/>
-        {% if budget and total > budget %}<rect class="over" x="{{ '%.3f'|format(budget * 100 / scale) }}" width="{{ '%.3f'|format(100 - budget * 100 / scale) }}" height="18"/>{% endif %}
-        {% for category in ns.order %}{% set width = ns.sums[category] * 100 / scale %}
-        <rect class="seg {{ category_class(category) }}" x="{{ '%.3f'|format(ns.x) }}" width="{{ '%.3f'|format(width) }}" height="18"/>{% set ns.x = ns.x + width %}
-        {% endfor %}
-        {% if budget %}<line class="limit" x1="{{ '%.3f'|format(budget * 100 / scale) }}" x2="{{ '%.3f'|format(budget * 100 / scale) }}" y1="0" y2="18" vector-effect="non-scaling-stroke"/>{% endif %}
-      </svg>
-      <div class="bar-scale" aria-hidden="true"><span>€0</span><span>{% if budget and total <= budget %}Budget {{ money(budget) }}{% elif budget %}Total {{ money(total) }}, line marks the budget{% else %}Total {{ money(total) }}{% endif %}</span></div>
-      {% endif %}
-    </section>
-    <section class="panel summary-detail" aria-labelledby="compat-title">
-      {% if ns.order %}
-      <h2 class="legend-title">Cost by category</h2>
-      <ul class="legend">
-        {% for category in ns.order %}
-        <li><span class="tag {{ category_class(category) }}">{{ category }}</span><span class="money">{{ money(ns.sums[category]) }}</span></li>
-        {% endfor %}
-      </ul>
-      {% endif %}
-      <div class="compat">
-        <div class="panel-head">
-          <h2 id="compat-title" tabindex="-1">Compatibility</h2>
-          {% if compatibility_state == 'ok' %}<span class="status status-ok">Compatible</span>
-          {% elif compatibility_state == 'issue' %}<span class="status status-bad">Mismatch found</span>
-          {% else %}<span class="status status-warn">Incomplete</span>{% endif %}
+<div class="builder">
+  <div class="sheet slots">
+  {% for slot in slots %}
+    {%- set cat = slot.category -%}
+    {%- set key = cat|lower -%}
+    {%- set picker = '/components?build=' ~ build.id ~ '&category=' ~ cat -%}
+    {%- set limit = max_quantity(cat) -%}
+    {%- set problems = conflicts.get(cat, []) if slot.parts else [] -%}
+    <section class="slot{{ ' is-empty' if not slot.parts }}{{ ' is-next' if ns.next == cat }}{{ ' has-conflict' if problems }}" id="slot-{{ key }}" aria-labelledby="label-{{ key }}">
+      <div class="slot-icon">{{ part_icon(cat) }}</div>
+      <div class="slot-main">
+        <div class="slot-head">
+          <h2 class="slot-label" id="label-{{ key }}">{{ CATEGORY_LABELS[cat] }}</h2>
+          {% if ns.next == cat %}<span class="next-label">Next step</span>{% endif %}
         </div>
-        <ul class="check-list">
-          {% for warning in warnings %}<li class="is-bad">{{ warning }}</li>{% endfor %}
-          {% if compatibility_status %}<li class="{{ 'is-ok' if compatibility_state == 'ok' else 'is-info' }}">{{ compatibility_status }}</li>{% endif %}
-        </ul>
-        <p class="scope-note">Compares CPU socket and RAM generation with the motherboard, using catalogue data. BIOS support, physical fit, cooling and power are not checked. Prices are demonstration values.</p>
-      </div>
-      <div class="summary-links">
-        <a class="btn btn-secondary btn-sm" href="/report">Open report</a>
+        {% for item in slot.parts %}
+        <div class="slot-part">
+          <div>
+            <p class="part-name">{{ item.name }}</p>
+            {{ spec_list(item.specs) }}
+            {% if item.socket or item.ram_type or limit > 1 or problems %}
+            <div class="part-meta">
+              {{ chips(item) }}
+              {% for problem in problems %}<span class="state state-bad">{{ problem }}</span>{% endfor %}
+              {% if limit > 1 %}
+              <form class="qty-form" method="post" action="/builds/{{ build.id }}/items/{{ item.id }}/quantity">
+                <input type="hidden" name="csrf" value="{{ csrf }}">
+                <label for="qty-{{ item.id }}">{{ 'Kits' if cat == 'RAM' else 'Drives' }}</label>
+                <input id="qty-{{ item.id }}" name="quantity" type="number" min="1" max="{{ limit }}" value="{{ item.quantity }}" inputmode="numeric" required>
+                <button class="btn-ghost btn-sm" type="submit">Update<span class="visually-hidden"> quantity of {{ item.name }}</span></button>
+              </form>
+              {% endif %}
+            </div>
+            {% endif %}
+          </div>
+          <div class="slot-side">
+            <span class="slot-price money">{{ money(item.price_cents * item.quantity) }}{% if item.quantity > 1 %}<small>{{ item.quantity }} × {{ money(item.price_cents) }}</small>{% endif %}</span>
+            <div class="slot-actions">
+              {% if cat != 'Storage' %}<a class="btn btn-sm btn-quiet" href="{{ picker }}">Change<span class="visually-hidden"> {{ CATEGORY_LABELS[cat]|lower }}</span></a>{% endif %}
+              <details class="remove">
+                <summary class="btn btn-sm btn-danger-quiet">Remove<span class="visually-hidden"> {{ item.name }}</span></summary>
+                <form method="post" action="/builds/{{ build.id }}/items/{{ item.id }}/delete">
+                  <input type="hidden" name="csrf" value="{{ csrf }}">
+                  <p>Remove {{ item.name }} from this build?</p>
+                  <button class="btn-danger btn-sm" type="submit" name="confirmed" value="yes">Remove part</button>
+                </form>
+              </details>
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <div class="slot-part">
+          <p class="slot-empty-text">{{ hints[cat] }}</p>
+          <div class="slot-side">
+            <a class="btn btn-sm{{ '' if ns.next == cat else ' btn-ghost' }}" href="{{ picker }}">{{ choose[cat] }}</a>
+          </div>
+        </div>
+        {% endfor %}
+        {% if cat == 'Storage' and slot.parts %}<a class="btn btn-sm btn-quiet add-more" href="{{ picker }}">Add another drive</a>{% endif %}
       </div>
     </section>
+  {% endfor %}
   </div>
 
-  <section class="add-part panel" id="add-component" aria-labelledby="add-title">
-    <div class="panel-head">
-      <h2 id="add-title">Add a component</h2>
-      <a href="/components">Browse the catalogue</a>
-    </div>
-    <form method="post" action="/builds/{{ build.id }}/items" class="add-form">
-      <input type="hidden" name="csrf" value="{{ csrf }}">
-      <div class="field field-select">
-        <label for="component">Choose from catalogue</label>
-        <select id="component" name="component_id" required aria-describedby="component-hint">
-          <option value="">Choose a part…</option>
-          {% for component in components %}
-            {% if loop.first or component.category != loop.previtem.category %}<optgroup label="{{ component.category }}">{% endif %}
-            {%- set specs = [component.socket, component.ram_type]|select|join(', ') -%}
-            {%- set taken = component.name in in_build -%}
-            {%- set blocked = not taken and component.category in single and component.category in used_categories -%}
-            <option value="{{ component.id }}"{% if taken or blocked %} disabled{% endif %}>{{ component.name }}{% if specs %} ({{ specs }}){% endif %}, {{ money(component.price_cents) }}{% if taken %}, already in build{% elif blocked %}, remove current {{ component.category }} first{% endif %}</option>
-            {% if loop.last or component.category != loop.nextitem.category %}</optgroup>{% endif %}
-          {% endfor %}
-        </select>
-      </div>
-      <button type="submit">Add component</button>
-      <p class="hint" id="component-hint">A build holds one CPU, one motherboard and one RAM kit. To replace one, remove it from the list first.</p>
-    </form>
-  </section>
+  <aside class="plate" id="summary" aria-labelledby="summary-title" tabindex="-1">
+    <h2 id="summary-title">Build total</h2>
+    <span class="total money">{{ money(s.total) }}</span>
+    <dl class="plate-figures">
+      <dt>Budget</dt><dd class="money">{{ money(budget) if budget else 'No limit' }}</dd>
+      {% if budget %}
+      <dt>{{ 'Over budget by' if over else 'Remaining' }}</dt>
+      <dd class="money {{ 'is-over' if over else 'is-ok' }}">{{ money(s.total - budget) if over else money(budget - s.total) }}</dd>
+      {% endif %}
+    </dl>
+    {{ budget_bar(s.total, budget) }}
+    <p class="plate-progress">{{ s.chosen|length }} of 7 parts chosen</p>
+    <details class="budget-edit">
+      <summary>Change budget</summary>
+      <form method="post" action="/builds/{{ build.id }}/edit">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <input type="hidden" name="title" value="{{ build.title }}">
+        <label class="visually-hidden" for="plate-budget">New budget in euros</label>
+        <div class="affix"><span aria-hidden="true">€</span><input id="plate-budget" name="budget" type="number" min="0" max="100000" step="0.01" value="{{ '%d.%02d'|format(budget // 100, budget % 100) }}" inputmode="decimal" required></div>
+        <button class="btn-sm" type="submit">Save</button>
+      </form>
+    </details>
 
-  <section class="parts panel" aria-labelledby="parts-title">
-    <div class="panel-head">
-      <h2 id="parts-title">Selected components</h2>
-      <p>{{ items|length }} {{ 'part' if items|length == 1 else 'parts' }}</p>
-    </div>
-    {% if items %}
-    <div class="table-wrap">
-      <table class="parts-table">
-        <caption class="visually-hidden">Components saved in this build</caption>
-        <thead><tr>
-          <th scope="col">Component</th>
-          <th scope="col">Quantity</th>
-          <th scope="col" class="num">Subtotal</th>
-          <th scope="col"><span class="visually-hidden">Remove</span></th>
-        </tr></thead>
-        <tbody>
-        {% for item in items %}
-        <tr>
-          <td>
-            <span class="tag {{ category_class(item.category) }}">{{ item.category }}</span>
-            <span class="cell-name part-name">{{ item.name }}</span>
-            {% if item.socket or item.ram_type %}<span class="specs">{% if item.socket %}<span class="spec" title="CPU socket">{{ item.socket }}</span>{% endif %}{% if item.ram_type %}<span class="spec" title="Memory generation">{{ item.ram_type }}</span>{% endif %}</span>{% endif %}
-          </td>
-          <td data-label="Quantity">
-            {% if item.category in ('CPU', 'Motherboard') %}
-              <span class="qty-fixed">{{ item.quantity }} <small>One per build</small></span>
-            {% else %}
-              <form class="quantity-form" method="post" action="/builds/{{ build.id }}/items/{{ item.id }}/quantity">
-                <input type="hidden" name="csrf" value="{{ csrf }}">
-                <label class="visually-hidden" for="quantity-{{ item.id }}">Quantity for {{ item.name }}</label>
-                <input id="quantity-{{ item.id }}" name="quantity" type="number" min="1" max="20" value="{{ item.quantity }}" inputmode="numeric" required>
-                <button class="btn-sm btn-secondary" type="submit">Update<span class="visually-hidden"> quantity for {{ item.name }}</span></button>
-              </form>
-            {% endif %}
-          </td>
-          <td class="num" data-label="Subtotal">
-            <span class="money">{{ money(item.price_cents * item.quantity) }}</span>
-            {% if item.quantity > 1 %}<span class="cell-sub money">{{ money(item.price_cents) }} each</span>{% endif %}
-          </td>
-          <td class="remove">
-            <details>
-              <summary>Remove<span class="visually-hidden"> {{ item.name }}</span></summary>
-              <form method="post" action="/builds/{{ build.id }}/items/{{ item.id }}/delete">
-                <input type="hidden" name="csrf" value="{{ csrf }}">
-                <button class="btn-sm btn-danger" type="submit" name="confirmed" value="yes">Confirm removal</button>
-              </form>
-            </details>
-          </td>
-        </tr>
+    <section class="plate-section" aria-labelledby="checks-title">
+      <h2 id="checks-title">Compatibility checks</h2>
+      <ul class="checks">
+        {% for check in s.checks %}
+        <li class="is-{{ check.state }}"><div><strong>{{ check.label }}: {{ {'ok': 'match', 'bad': 'mismatch'}.get(check.state, 'not checked yet') }}</strong><span>{{ check.detail }}</span></div></li>
         {% endfor %}
-        </tbody>
-      </table>
+      </ul>
+      <p class="plate-note">Not checked: power supply wattage, cooler, BIOS version and physical fit in the case.</p>
+    </section>
+    <div class="plate-actions">
+      <a class="btn btn-ghost btn-sm" href="/report?build={{ build.id }}">Print parts sheet</a>
+      <a class="btn btn-ghost btn-sm" href="/report.csv?build={{ build.id }}" download>Export CSV</a>
     </div>
-    {% else %}
-    <div class="empty-state">
-      {{ empty_icon() }}
-      <h3>No components selected yet</h3>
-      <p>Start with a CPU and a motherboard. Add RAM next so both compatibility checks can run.</p>
-      <a class="btn btn-secondary" href="#component">Choose a component</a>
-    </div>
-    {% endif %}
-  </section>
+    <p class="plate-note">Prices are demonstration values in euros.</p>
+  </aside>
 </div>
+
+<a class="mobile-total" href="#summary">
+  <span class="total money">{{ money(s.total) }}</span>
+  <span class="rest">{{ s.chosen|length }} of 7 parts{% if budget %}<br><span class="{{ 'is-over' if over }}">{{ money(s.total - budget) ~ ' over' if over else money(budget - s.total) ~ ' left' }}</span>{% endif %}</span>
+</a>
 {% endblock %}

@@ -5,8 +5,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="PC Build Planner: plan a desktop PC build, check CPU socket and memory compatibility, and compare the total with your budget.">
-  <meta name="theme-color" content="#22272e">
+  <meta name="description" content="PC Build Planner: choose parts for a desktop PC, check CPU socket and memory compatibility, and keep the total within your budget.">
   <title>{% block title %}PC Build Planner{% endblock %}</title>
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/styles.css">
@@ -17,37 +16,34 @@
 <header class="site-header">
   <div class="container topbar">
     <a class="brand" href="/">{{ brand_mark() }}<span>PC Build Planner</span></a>
+    {% if user %}
     <nav class="main-nav" aria-label="Main navigation">
       <ul>
-      {% if user %}
         <li><a href="/" {% if path == '/' %}aria-current="page"{% elif path.startswith('/builds') %}aria-current="true"{% endif %}>My builds</a></li>
-        <li><a href="/components" {% if path == '/components' %}aria-current="page"{% elif path.startswith('/components') %}aria-current="true"{% endif %}>Components</a></li>
-        <li><a href="/report" {% if path == '/report' %}aria-current="page"{% endif %}>Report</a></li>
-      {% else %}
-        <li><a href="/" {% if path == '/' %}aria-current="page"{% endif %}>Overview</a></li>
-        <li><a href="/login" {% if path == '/login' %}aria-current="page"{% endif %}>Log in</a></li>
-      {% endif %}
+        <li><a href="/components" {% if path == '/components' %}aria-current="page"{% elif path.startswith('/components') %}aria-current="true"{% endif %}>Catalogue</a></li>
+        <li><a href="/report" {% if path == '/report' %}aria-current="page"{% endif %}>Reports</a></li>
       </ul>
     </nav>
-    {% if user %}
-      <div class="account">
-        <span class="account-name">{{ user.username }} <span class="role role-{{ user.role }}">{{ user.role|capitalize }}</span></span>
-        <form action="/logout" method="post">
-          <input type="hidden" name="csrf" value="{{ csrf }}">
-          <button class="btn btn-sm btn-secondary" type="submit">Log out</button>
-        </form>
-      </div>
+    <div class="account">
+      <span class="account-name">{{ user.username }}<span class="role role-{{ user.role }}">{{ user.role|capitalize }}</span></span>
+      <form action="/logout" method="post">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <button class="btn-ghost btn-sm" type="submit">Log out</button>
+      </form>
+    </div>
+    {% elif path != '/login' %}
+    <div class="account"><a class="btn btn-sm" href="/login">Log in</a></div>
     {% endif %}
   </div>
 </header>
-<main id="main" class="container page" tabindex="-1">
-  {% if notice %}<div class="alert alert-success" role="status"><p>{{ notice }}</p></div>{% endif %}
+<main id="main" class="container page{% block main_class %}{% endblock %}" tabindex="-1">
+  {% if notice %}<div class="notice notice-ok" role="status"><p>{{ notice }}</p></div>{% endif %}
   {% block content %}{% endblock %}
 </main>
 <footer class="site-footer">
   <div class="container">
     <span>PW2 prototype · 2026 · Real part models, demonstration prices</span>
-    <span>Compatibility covers CPU socket and RAM generation only.</span>
+    <span>Compatibility covers CPU socket and memory type only.</span>
   </div>
 </footer>
 </body>

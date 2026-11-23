@@ -2,75 +2,61 @@
 {% block title %}{{ heading }} | PC Build Planner{% endblock %}
 {% block content %}
 <div class="narrow">
-<nav class="breadcrumb" aria-label="Breadcrumb">
-  <ol>
-    <li><a href="/components">Components</a></li>
-    <li aria-current="page">{{ heading }}</li>
-  </ol>
-</nav>
-<div class="panel">
-  <div class="page-head">
-    <div>
-      <h1>{{ heading }}</h1>
-      <p class="lede">Saved changes apply to every build that uses this part.</p>
-    </div>
-  </div>
-  {% if error %}<div class="alert alert-error" role="alert" id="form-error"><p>{{ error }}</p></div>{% endif %}
-  <form class="form" method="post">
-    <input type="hidden" name="csrf" value="{{ csrf }}">
-    <fieldset>
-      <legend>Part</legend>
-      <div class="field">
-        <label for="name">Component name</label>
-        <input name="name" id="name" value="{{ values.name }}" minlength="2" maxlength="80" required aria-describedby="name-hint">
-        <p class="hint" id="name-hint">2 to 80 characters. Names are unique in the catalogue.</p>
-      </div>
-      <div class="field">
-        <label for="specs">Key specifications</label>
-        <input name="specs" id="specs" value="{{ values.specs or '' }}" maxlength="120" aria-describedby="specs-hint">
-        <p class="hint" id="specs-hint">Up to 120 characters, separated by semicolons. For example: 6 cores / 12 threads; 3.8–5.1 GHz; 65 W TDP</p>
-      </div>
-      <div class="field-row">
+  <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/components">Catalogue</a></li><li aria-current="page">{{ heading }}</li></ol></nav>
+  <div class="sheet sheet-pad">
+    <h1>{{ heading }}</h1>
+    <p class="lede muted">Changes apply to every build that uses this part.</p>
+    {% if error %}<div class="notice notice-error" role="alert" id="form-error"><p>{{ error }}</p></div>{% endif %}
+    <form class="form" method="post">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <fieldset>
+        <legend>Part</legend>
         <div class="field">
-          <label for="category_id">Category</label>
-          <select name="category_id" id="category_id" required>
-            {% for category in categories %}<option value="{{ category.id }}" {% if category.id == values.category_id %}selected{% endif %}>{{ category.name }}</option>{% endfor %}
-          </select>
+          <label for="name">Model name</label>
+          <input name="name" id="name" value="{{ values.name }}" minlength="2" maxlength="80" required aria-describedby="name-hint">
+          <p class="hint" id="name-hint">2 to 80 characters. Names are unique in the catalogue.</p>
         </div>
-        <div class="field">
-          <label for="price">Price (EUR)</label>
-          <div class="affix">
-            <span aria-hidden="true">€</span>
-            <input name="price" id="price" value="{{ values.price }}" type="number" min="0" max="100000" step="0.01" inputmode="decimal" required>
+        <div class="field-row">
+          <div class="field">
+            <label for="category_id">Category</label>
+            <select name="category_id" id="category_id" required>
+              {% for category in categories %}<option value="{{ category.id }}" {% if category.id == values.category_id %}selected{% endif %}>{{ CATEGORY_LABELS[category.name] }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="price">Price (EUR)</label>
+            <div class="affix"><span aria-hidden="true">€</span><input name="price" id="price" value="{{ values.price }}" type="number" min="0" max="100000" step="0.01" inputmode="decimal" required></div>
           </div>
         </div>
-      </div>
-    </fieldset>
-    <fieldset>
-      <legend>Compatibility data</legend>
-      <div class="field-row">
         <div class="field">
-          <label for="socket">CPU socket</label>
-          <input name="socket" id="socket" value="{{ values.socket or '' }}" maxlength="20" aria-describedby="socket-hint" autocapitalize="characters" spellcheck="false">
-          <p class="hint" id="socket-hint">Required for CPUs and motherboards. Leave blank for other parts.</p>
+          <label for="specs">Key specifications</label>
+          <input name="specs" id="specs" value="{{ values.specs or '' }}" maxlength="120" aria-describedby="specs-hint">
+          <p class="hint" id="specs-hint">Up to 120 characters, separated by semicolons. For example: 6 cores / 12 threads; 3.8–5.1 GHz; 65 W TDP</p>
         </div>
-        <div class="field">
-          <label for="ram_type">Memory generation</label>
-          <select name="ram_type" id="ram_type" aria-describedby="memory-hint">
-            <option value="">Not applicable</option>
-            {% for type in ram_types %}
-            <option value="{{ type }}" {% if type == values.ram_type %}selected{% endif %}>{{ type }}</option>
-            {% endfor %}
-          </select>
-          <p class="hint" id="memory-hint">Required for RAM and motherboards.</p>
+      </fieldset>
+      <fieldset>
+        <legend>Compatibility data</legend>
+        <div class="field-row">
+          <div class="field">
+            <label for="socket">CPU socket</label>
+            <input name="socket" id="socket" value="{{ values.socket or '' }}" maxlength="20" autocapitalize="characters" spellcheck="false" aria-describedby="socket-hint">
+            <p class="hint" id="socket-hint">Required for processors and motherboards, for example AM5.</p>
+          </div>
+          <div class="field">
+            <label for="ram_type">Memory type</label>
+            <select name="ram_type" id="ram_type" aria-describedby="memory-hint">
+              <option value="">Not applicable</option>
+              {% for type in ram_types %}<option value="{{ type }}" {% if type == values.ram_type %}selected{% endif %}>{{ type }}</option>{% endfor %}
+            </select>
+            <p class="hint" id="memory-hint">Required for memory and motherboards.</p>
+          </div>
         </div>
+      </fieldset>
+      <div class="form-actions">
+        <button type="submit">Save component</button>
+        <a class="btn btn-ghost" href="/components">Cancel</a>
       </div>
-    </fieldset>
-    <div class="form-actions">
-      <button type="submit">Save component</button>
-      <a class="btn btn-secondary" href="/components">Cancel</a>
-    </div>
-  </form>
-</div>
+    </form>
+  </div>
 </div>
 {% endblock %}

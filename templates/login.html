@@ -2,21 +2,11 @@
 {% from '_macros.html' import brand_mark %}
 {% block title %}Log in | PC Build Planner{% endblock %}
 {% block content %}
-<div class="auth">
-  <div class="auth-aside">
-    {{ brand_mark() }}
-    <h2>PC Build Planner</h2>
-    <p>Plan desktop builds against a budget and keep them in one place.</p>
-    <ul>
-      <li>Save several builds and compare their totals</li>
-      <li>Check CPU socket and RAM generation against the motherboard</li>
-      <li>Print a report or export it as CSV</li>
-    </ul>
-  </div>
-  <div class="auth-form">
+<div class="login">
+  <div class="sheet sheet-pad">
     <h1>Log in</h1>
-    <p class="lede">Sign in with the account provided for your demonstration.</p>
-    {% if error %}<div class="alert alert-error" role="alert" id="login-error"><p>{{ error }}</p></div>{% endif %}
+    <p class="lede">Use the account provided for the class. Your builds are private to your account.</p>
+    {% if error %}<div class="notice notice-error" role="alert" id="login-error"><p>{{ error }}</p></div>{% endif %}
     <form class="form" method="post" action="/login">
       <input type="hidden" name="csrf" value="{{ csrf }}">
       <div class="field">
