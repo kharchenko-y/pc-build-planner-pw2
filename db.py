@@ -7,6 +7,7 @@ from pathlib import Path
 import secrets
 import sqlite3
 
+from catalogue import INSERT_COMPONENT, csv_rows
 from config import LOCAL_PASSWORD, PRODUCTION
 
 HERE = Path(__file__).resolve().parent
@@ -55,25 +56,43 @@ def init_database():
             for row in db.execute("SELECT username, password_hash FROM users"):
                 if row["username"] in {"student", "admin"} and verify_password(LOCAL_PASSWORD, row["password_hash"]):
                     raise RuntimeError("Use a fresh database or remove local demo accounts before deployment.")
+        if "specs" not in {row["name"] for row in db.execute("PRAGMA table_info(components)")}:
+            db.execute("ALTER TABLE components ADD COLUMN specs TEXT NOT NULL DEFAULT ''")
         new_catalogue = db.execute("SELECT COUNT(*) FROM categories").fetchone()[0] == 0
         if new_catalogue:
             categories = ["CPU", "Motherboard", "RAM", "GPU", "Storage", "PSU", "Case"]
             db.executemany("INSERT INTO categories (name) VALUES (?)", [(x,) for x in categories])
+        categories = {row["name"]: row["id"] for row in db.execute("SELECT id, name FROM categories")}
+        seed = csv_rows((HERE / "database" / "seed_components.csv").read_bytes(), categories)
         if new_catalogue:
-            sample = [
-                ("CPU", "Demo CPU AM5", 19000, "AM5", None),
-                ("CPU", "Demo CPU LGA1700", 17500, "LGA1700", None),
-                ("Motherboard", "Demo motherboard AM5", 13000, "AM5", "DDR5"),
-                ("Motherboard", "Demo motherboard LGA1700", 12500, "LGA1700", "DDR4"),
-                ("RAM", "16 GB DDR5 demo kit", 5500, None, "DDR5"),
-                ("RAM", "16 GB DDR4 demo kit", 4000, None, "DDR4"),
-                ("GPU", "Demo graphics card", 29000, None, None),
-                ("Storage", "1 TB SSD demo", 7500, None, None),
-                ("PSU", "650 W power supply demo", 7000, None, None),
-                ("Case", "Basic case demo", 6000, None, None),
-            ]
-            db.executemany(
-                """INSERT INTO components (category_id, name, price_cents, socket, ram_type)
-                   VALUES ((SELECT id FROM categories WHERE name = ?), ?, ?, ?, ?)""",
-                sample,
-            )
+            db.executemany(INSERT_COMPONENT, seed)
+        else:
+            upgrade_demo_catalogue(db, seed)
+
+
+# Placeholder parts from the first prototype and the real models that replace them.
+DEMO_NAMES = {
+    "Demo CPU AM5": "AMD Ryzen 5 7600",
+    "Demo CPU LGA1700": "Intel Core i5-14400F",
+    "Demo motherboard AM5": "MSI PRO B650M-A WIFI",
+    "Demo motherboard LGA1700": "MSI PRO B760M-A WIFI DDR4",
+    "16 GB DDR5 demo kit": "Kingston FURY Beast 16 GB (2 × 8 GB) DDR5-5600",
+    "16 GB DDR4 demo kit": "Corsair Vengeance LPX 16 GB (2 × 8 GB) DDR4-3200",
+    "Demo graphics card": "MSI GeForce RTX 5060 8G VENTUS 2X OC",
+    "1 TB SSD demo": "Samsung 990 EVO Plus 1 TB",
+    "650 W power supply demo": "be quiet! System Power 10 650W",
+    "Basic case demo": "Cooler Master MasterBox Q300L",
+}
+
+
+def upgrade_demo_catalogue(db, seed):
+    """Rename placeholder parts in place, so saved builds keep their items, then add the rest once."""
+    specs = {row[1]: row[5] for row in seed}
+    renamed = 0
+    for old, new in DEMO_NAMES.items():
+        if not db.execute("SELECT 1 FROM components WHERE name = ?", (new,)).fetchone():
+            renamed += db.execute(
+                "UPDATE components SET name = ?, specs = ? WHERE name = ?", (new, specs[new], old),
+            ).rowcount
+    if renamed:
+        db.executemany(INSERT_COMPONENT.replace("INSERT INTO", "INSERT OR IGNORE INTO"), seed)

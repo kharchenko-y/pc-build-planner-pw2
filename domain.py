@@ -6,6 +6,7 @@ SOCKET = re.compile(r"[A-Z0-9][A-Z0-9 -]{0,19}")
 RAM_TYPES = {"DDR3", "DDR4", "DDR5"}
 COMPATIBILITY_CATEGORIES = {"CPU", "Motherboard", "RAM"}
 COMPATIBLE = "CPU socket and RAM generation match the motherboard."
+MAX_SPECS = 120
 
 
 def money_cents(raw):
@@ -39,6 +40,14 @@ def component_values(category, name, price, socket, ram_type):
     elif ram_type:
         raise ValueError("Memory generation is used only for RAM and motherboards.")
     return name, money_cents(price), socket or None, ram_type or None
+
+
+def clean_specs(raw):
+    """Key specifications are one short line, with items separated by semicolons."""
+    specs = " ".join(raw.split())
+    if len(specs) > MAX_SPECS:
+        raise ValueError(f"Key specifications must be {MAX_SPECS} characters or fewer.")
+    return specs
 
 
 def compatibility(items):

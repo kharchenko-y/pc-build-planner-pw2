@@ -25,6 +25,11 @@
         <input name="name" id="name" value="{{ values.name }}" minlength="2" maxlength="80" required aria-describedby="name-hint">
         <p class="hint" id="name-hint">2 to 80 characters. Names are unique in the catalogue.</p>
       </div>
+      <div class="field">
+        <label for="specs">Key specifications</label>
+        <input name="specs" id="specs" value="{{ values.specs or '' }}" maxlength="120" aria-describedby="specs-hint">
+        <p class="hint" id="specs-hint">Up to 120 characters, separated by semicolons. For example: 6 cores / 12 threads; 3.8–5.1 GHz; 65 W TDP</p>
+      </div>
       <div class="field-row">
         <div class="field">
           <label for="category_id">Category</label>

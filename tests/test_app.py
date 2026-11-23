@@ -48,7 +48,7 @@ def test_login_and_create_build_with_components(client):
     build_id = new_build(client)
     response = client.get(f"/builds/{build_id}")
     assert response.status_code == 200 and "Office PC" in response.text
-    # Demo CPU AM5 is first catalog entry.
+    # AMD Ryzen 5 7600 is the first catalogue entry.
     result = client.post(f"/builds/{build_id}/items", data={"component_id": 1, "csrf": csrf(client, f"/builds/{build_id}")}, follow_redirects=False)
     assert result.status_code == 303
     assert "€190.00" in client.get(f"/builds/{build_id}").text
@@ -159,7 +159,7 @@ def test_component_fragment_and_permission(client):
     login(client)
     response = client.get("/components/results?q=AM5&category=CPU")
     assert response.status_code == 200
-    assert "Demo CPU AM5" in response.text
+    assert "AMD Ryzen 5 7600" in response.text
     assert "motherboard" not in response.text
     assert client.get("/components/import").status_code == 403
     assert client.get("/components/1/edit").status_code == 403
@@ -201,7 +201,7 @@ def test_build_summary_shows_total_budget_and_compatibility(client):
     token = csrf(client, "/builds/new")
     result = client.post("/builds/new", data={"title": "Campus PC", "budget": "800", "csrf": token}, follow_redirects=False)
     build_id = int(result.headers["location"].split("/")[-1])
-    for component_id in (1, 3, 5):  # Demo CPU AM5, Demo motherboard AM5, 16 GB DDR5 demo kit
+    for component_id in (1, 3, 5):  # AMD Ryzen 5 7600, MSI PRO B650M-A WIFI, Kingston FURY Beast DDR5 kit
         client.post(f"/builds/{build_id}/items", data={"component_id": component_id, "csrf": csrf(client, f"/builds/{build_id}")})
     document = BeautifulSoup(client.get(f"/builds/{build_id}").text, "html.parser")
     assert document.select_one(".summary-total .total").get_text(strip=True) == "€375.00"

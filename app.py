@@ -15,7 +15,10 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
 from catalogue import INSERT_COMPONENT, MAX_CSV_BYTES, csv_rows, lookup
-from domain import COMPATIBILITY_CATEGORIES, COMPATIBLE, RAM_TYPES, compatibility, component_values, money_cents, text_amount
+from domain import (
+    COMPATIBILITY_CATEGORIES, COMPATIBLE, RAM_TYPES, clean_specs, compatibility, component_values, money_cents,
+    text_amount,
+)
 from config import PRODUCTION, ROOT, SESSION_SECONDS, SESSION_SECRET
 from db import connection, verify_password
 
@@ -407,7 +410,7 @@ def catalogue_form(request, component_id=None, values=None, error=None):
             row = find_component(db, component_id)
             values = dict(row, price=text_amount(row["price_cents"]))
     return page(
-        request, "component_form.html", values=values or {"name": "", "price": "", "category_id": None, "socket": "", "ram_type": ""},
+        request, "component_form.html", values=values or {"name": "", "price": "", "category_id": None, "socket": "", "ram_type": "", "specs": ""},
         categories=categories, ram_types=sorted(RAM_TYPES),
         heading="Edit component" if component_id is not None else "Add component", error=error,
     )
@@ -420,14 +423,14 @@ def find_component(db, component_id):
     return component
 
 
-def save_component(request, component_id, category_id, name, price, socket, ram_type):
+def save_component(request, component_id, category_id, name, price, socket, ram_type, specs):
     try:
         with connection() as db:
             db.execute("BEGIN IMMEDIATE")
             category = db.execute("SELECT name FROM categories WHERE id = ?", (category_id,)).fetchone()
             if not category:
                 raise ValueError("Choose an existing category.")
-            values = component_values(category["name"], name, price, socket, ram_type)
+            values = (*component_values(category["name"], name, price, socket, ram_type), clean_specs(specs))
             if component_id is None:
                 db.execute(INSERT_COMPONENT, (category_id, *values))
             else:
@@ -437,13 +440,13 @@ def save_component(request, component_id, category_id, name, price, socket, ram_
                 ).fetchone():
                     raise ValueError("Category cannot change while this component is used in a build.")
                 db.execute(
-                    """UPDATE components SET category_id = ?, name = ?, price_cents = ?, socket = ?, ram_type = ?
-                       WHERE id = ?""",
+                    """UPDATE components SET category_id = ?, name = ?, price_cents = ?, socket = ?, ram_type = ?,
+                       specs = ? WHERE id = ?""",
                     (category_id, *values, component_id),
                 )
     except (ValueError, sqlite3.IntegrityError) as error:
         message = str(error) if isinstance(error, ValueError) else "A component with that name already exists."
-        fields = dict(category_id=category_id, name=name, price=price, socket=socket, ram_type=ram_type)
+        fields = dict(category_id=category_id, name=name, price=price, socket=socket, ram_type=ram_type, specs=specs)
         return catalogue_form(request, component_id, fields, message)
     return saved(request, "/components", "Component saved.")
 
@@ -456,10 +459,10 @@ def component_form(request: Request):
 
 @app.post("/components/new")
 def create_component(request: Request, category_id: int = Form(...), name: str = Form(...), price: str = Form(...),
-                     socket: str = Form(""), ram_type: str = Form(""), csrf: str = Form(...)):
+                     socket: str = Form(""), ram_type: str = Form(""), specs: str = Form(""), csrf: str = Form(...)):
     require_admin(request)
     check_token(request, csrf)
-    return save_component(request, None, category_id, name, price, socket, ram_type)
+    return save_component(request, None, category_id, name, price, socket, ram_type, specs)
 
 
 @app.get("/components/{component_id}/edit", response_class=HTMLResponse)
@@ -470,10 +473,11 @@ def edit_component_form(request: Request, component_id: int):
 
 @app.post("/components/{component_id}/edit")
 def edit_component(request: Request, component_id: int, category_id: int = Form(...), name: str = Form(...),
-                   price: str = Form(...), socket: str = Form(""), ram_type: str = Form(""), csrf: str = Form(...)):
+                   price: str = Form(...), socket: str = Form(""), ram_type: str = Form(""), specs: str = Form(""),
+                   csrf: str = Form(...)):
     require_admin(request)
     check_token(request, csrf)
-    return save_component(request, component_id, category_id, name, price, socket, ram_type)
+    return save_component(request, component_id, category_id, name, price, socket, ram_type, specs)
 
 
 @app.get("/components/{component_id}/delete", response_class=HTMLResponse)

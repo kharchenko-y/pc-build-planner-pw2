@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from catalogue import INSERT_COMPONENT, csv_rows, lookup
-from db import connection, init_database, make_password_hash, verify_password
+from db import DEMO_NAMES, connection, init_database, make_password_hash, verify_password
 from domain import compatibility, component_values, money_cents
 
 
@@ -45,7 +45,9 @@ class DomainTests(unittest.TestCase):
 
     def test_csv_input_validation(self):
         header = b"category,name,price_eur,socket,ram_type\n"
-        self.assertEqual(csv_rows(header + b"CPU,A new CPU,19.95,AM5,\n", {"CPU": 1}), [(1, "A new CPU", 1995, "AM5", None)])
+        self.assertEqual(csv_rows(header + b"CPU,A new CPU,19.95,AM5,\n", {"CPU": 1}), [(1, "A new CPU", 1995, "AM5", None, "")])
+        with_specs = b"category,name,price_eur,socket,ram_type,specs\nCPU,A new CPU,19.95,AM5,,8 cores;  65 W\n"
+        self.assertEqual(csv_rows(with_specs, {"CPU": 1})[0][-1], "8 cores; 65 W")
         for invalid in (b"bad header\n", header + b"Unknown,A CPU,19.95,AM5,\n", header + b"CPU,A CPU,19.95,,\n", b"\x80", b"a" * 32769):
             with self.subTest(invalid=invalid[:30]), self.assertRaises(ValueError):
                 csv_rows(invalid, {"CPU": 1})
@@ -67,7 +69,7 @@ class DatabaseTests(unittest.TestCase):
         init_database()
         with connection() as db:
             self.assertEqual(db.execute("SELECT title FROM builds").fetchone()[0], "Saved build")
-            self.assertEqual(db.execute("SELECT COUNT(*) FROM components").fetchone()[0], 10)
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM components").fetchone()[0], 27)
 
     def test_foreign_key_restrict_and_cascade(self):
         with connection() as db:
@@ -81,7 +83,11 @@ class DatabaseTests(unittest.TestCase):
 
     def test_two_criteria_search_and_literal_wildcards(self):
         with connection() as db:
-            self.assertEqual([row["name"] for row in lookup(db, "AM5", "CPU")], ["Demo CPU AM5"])
+            self.assertEqual(
+                [row["name"] for row in lookup(db, "AM5", "CPU")],
+                ["AMD Ryzen 5 7600", "AMD Ryzen 7 9700X", "AMD Ryzen 7 7800X3D"],
+            )
+            self.assertEqual([row["name"] for row in lookup(db, "DDR4", "Motherboard")][0], "MSI B550M PRO-VDH WIFI")
             self.assertEqual(lookup(db, "%", ""), [])
             self.assertEqual(lookup(db, "_", ""), [])
             self.assertEqual(lookup(db, "' OR 1=1 --", ""), [])
@@ -89,11 +95,26 @@ class DatabaseTests(unittest.TestCase):
     def test_csv_transaction_rolls_back_on_conflict(self):
         with self.assertRaises(sqlite3.IntegrityError), connection() as db:
             db.executemany(INSERT_COMPONENT, [
-                (1, "Previously nonexistent CPU", 2000, "AM5", None),
-                (1, "Demo CPU AM5", 19000, "AM5", None),
+                (1, "Previously nonexistent CPU", 2000, "AM5", None, ""),
+                (1, "AMD Ryzen 5 7600", 19000, "AM5", None, ""),
             ])
         with connection() as db:
             self.assertEqual(lookup(db, "Previously nonexistent", "CPU"), [])
+
+    def test_demo_catalogue_is_upgraded_in_place(self):
+        with connection() as db:
+            for old, new in DEMO_NAMES.items():
+                db.execute("UPDATE components SET name = ? WHERE name = ?", (old, new))
+            db.execute("DELETE FROM components WHERE id > 10")
+            db.execute("ALTER TABLE components DROP COLUMN specs")
+            build = db.execute("INSERT INTO builds (user_id, title) VALUES (?, ?)", (1, "Old build")).lastrowid
+            db.execute("INSERT INTO build_items (build_id, component_id) VALUES (?, ?)", (build, 1))
+        init_database()
+        with connection() as db:
+            name = db.execute("SELECT c.name FROM build_items bi JOIN components c ON c.id = bi.component_id").fetchone()[0]
+            self.assertEqual(name, "AMD Ryzen 5 7600")
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM components").fetchone()[0], 27)
+            self.assertIn("65 W TDP", db.execute("SELECT specs FROM components WHERE id = 1").fetchone()[0])
 
     def test_password_hash_is_salted_and_verifiable(self):
         first = make_password_hash("classroom test password")
