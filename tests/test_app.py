@@ -1,3 +1,4 @@
+import hashlib
 import os
 import re
 import sys
@@ -258,3 +259,15 @@ def test_report_sheet_and_itemized_csv(client):
     assert rows[0] == "Build,Category,Component,Quantity,Unit price (EUR),Subtotal (EUR)"
     assert "Campus PC,Processor,AMD Ryzen 5 7600,1,190.00,190.00" in rows
     assert "Campus PC,Total,,,,375.00" in rows
+
+
+def test_static_asset_versions(client):
+    page = BeautifulSoup(client.get("/").text, "html.parser")
+    for name, url in (
+        ("styles.css", page.select_one('link[rel="stylesheet"]')["href"]),
+        ("actions.js", page.select_one('script[src]')["src"]),
+    ):
+        response = client.get(url)
+        assert response.status_code == 200
+        version = hashlib.sha256(response.content).hexdigest()[:12]
+        assert url == f"/static/{name}?v={version}"

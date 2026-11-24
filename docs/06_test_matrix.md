@@ -35,4 +35,11 @@ Local run of branch `ui/builder-redesign`. FastAPI could not be installed in tha
 | €375 example | €800 budget, Ryzen 5 7600 + PRO B650M-A WIFI + FURY Beast DDR5 kit | €375.00, €425.00 remaining, both checks pass, report and CSV show the items. |
 | Replace and conflicts | One-step replace; concrete mismatch text | Core i5-14400F on the AM5 board names both parts and both sockets; slots are marked. |
 | Browser walkthrough | 1440, 768 and 390 px | 66 of 66 checks in Chromium 157 and Chrome 153; no page-level horizontal scroll, no unexpected console or CSP messages. |
-| Pending | Second browser family, validators, screen reader, zoom, hosted check | Not yet run. |
+| Pending | Second browser family, validators, screen reader, zoom, full authenticated hosted walkthrough | Not yet run. |
+
+
+## Hosted follow-up, 24 November 2026
+
+- PythonAnywhere staging: 30 tests and 12 subtests passed on FastAPI before deployment; one Starlette TestClient deprecation warning. The operator reported successful database backup, bootstrap and file update in the console.
+- Public pages after deployment: new home and login content and new CSS available; unauthenticated build, catalogue and report requests rejected with HTTP 401. An initial browser cache issue caused the new HTML to use old styles; a fresh browser displayed the redesign correctly.
+- Follow-up cache fix: content-hashed CSS and JavaScript URLs calculated at startup; new HTTP test verifies both URL hashes match the served bytes. Local run on FastAPI 0.128.2 / Starlette 0.50.0: 31 passed, 12 subtests passed. Not yet deployed or verified in a hosted browser.

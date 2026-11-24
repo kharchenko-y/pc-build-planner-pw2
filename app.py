@@ -33,6 +33,11 @@ app.add_middleware(
 )
 app.mount("/static", StaticFiles(directory=str(ROOT / "static")), name="static")
 templates = Jinja2Templates(directory=str(ROOT / "templates"))
+# Changing an asset changes its URL, so browsers do not reuse an old release.
+templates.env.globals["asset_versions"] = {
+    name: hashlib.sha256((ROOT / "static" / name).read_bytes()).hexdigest()[:12]
+    for name in ("styles.css", "actions.js")
+}
 templates.env.globals.update(
     CATEGORY_ORDER=CATEGORY_ORDER, CATEGORY_LABELS=CATEGORY_LABELS, CHOOSE_LABELS=CHOOSE_LABELS,
     max_quantity=max_quantity,
