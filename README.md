@@ -1,6 +1,6 @@
 # PC Build Planner
 
-A Vilnius University Practical Work II application for planning desktop PCs part by part. A build has seven slots (processor, motherboard, memory, graphics card, storage, power supply, case) filled from a catalogue of real components. The planner keeps the total against a budget and checks CPU socket and memory type against the motherboard. Catalogue prices are demonstration values.
+a Vilnius University Practical Work II application for planning desktop PCs part by part. A build has seven slots (processor, motherboard, memory, graphics card, storage, power supply, case) filled from a catalogue of real components. The planner keeps the total against a budget and checks CPU socket and memory type against the motherboard. Catalogue prices are demonstration values.
 
 ![Build editor with seven part slots and the summary panel](docs/screenshots/builder.png)
 
