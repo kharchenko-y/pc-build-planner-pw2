@@ -49,7 +49,9 @@ SQL statements bind input values. Jinja escapes HTML text. Forms use CSRF tokens
 
 Follow [the PythonAnywhere guide](deploy/README.md) for free HTTPS hosting using `a2wsgi` and persistent SQLite. Running `deploy/bootstrap.py` again after an update adds the `specs` column and replaces the placeholder parts with the real models in place, so saved builds keep their items. Keep credentials, runtime configuration and the database outside static directories and source control. The web app must run in production mode on the host.
 
-The [classroom deployment](https://yarslv.pythonanywhere.com/) was rechecked on 23 November 2026 using the provisioned Student account. It serves the baseline interface from `main` at `8ac831a`. Sign in and open [the prepared €375 build](https://yarslv.pythonanywhere.com/builds/3). The interface redesigns are not deployed there yet; see the [local screenshots](docs/screenshots/).
+The [classroom deployment](https://yarslv.pythonanywhere.com/) was updated to the builder redesign on 24 November 2026. Before deployment, the test suite passed on PythonAnywhere (30 tests and 12 subtests; one TestClient deprecation warning). The public home page and login page were rechecked after deployment; protected catalogue, report and build URLs rejected unauthenticated requests. Sign in and open [the prepared €375 build](https://yarslv.pythonanywhere.com/builds/3). A full authenticated hosted walkthrough remains to be repeated.
+
+CSS and JavaScript URLs now include a content hash calculated at application startup, to avoid reusing stale assets after a deployment and worker reload. This follow-up change has been tested locally; it is not yet deployed.
 
 ## Test commands and materials
 

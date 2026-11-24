@@ -8,8 +8,8 @@
   <meta name="description" content="PC Build Planner: choose parts for a desktop PC, check CPU socket and memory compatibility, and keep the total within your budget.">
   <title>{% block title %}PC Build Planner{% endblock %}</title>
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/static/styles.css">
-  <script src="/static/actions.js" defer></script>
+  <link rel="stylesheet" href="/static/styles.css?v={{ asset_versions["styles.css"] }}">
+  <script src="/static/actions.js?v={{ asset_versions["actions.js"] }}" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
